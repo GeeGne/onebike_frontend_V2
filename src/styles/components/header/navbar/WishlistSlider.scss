@@ -1,0 +1,202 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+
+.wishlist {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--cartSlider-background-color);
+  z-index: 100;
+  transition: background-color 0.5s ease-out;
+  body.arabic &{direction: rtl;}
+
+
+  &__slider {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(75% + 5em);
+    padding-bottom: 5em;
+    background-color: var(--background-color);
+    border: solid var(--endElement-border-background-color);
+    border-width: 1px 0 0 0;
+    border-radius: 2em 2em 0 0;
+    // overflow: hidden;
+    overflow: hidden scroll;
+    transform: translateY(100%);
+    transition: transform 0.25s ease-out;
+
+    &::-webkit-scrollbar {width: 0.5em}
+    &::-webkit-scrollbar-thumb {
+      cursor: grab;
+      background-color: var(--sideMenu-scrollBar-background-color);
+      transition: background-color 0.15s;
+      border-radius: 2em;
+    }
+    &::-webkit-scrollbar-track {
+      margin: 3em 0 5em 0;
+      background-color: rgba(42, 42, 42, 0);
+    }
+    &::-webkit-scrollbar-thumb:active {cursor: grabbing}
+    &::-webkit-scrollbar-thumb:hover {background-color: hsl(0, 0%, 50%)}
+
+    &__exit-btn {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 2em;
+      border: solid var(--endElement-border-background-color);
+      border-width: 0 0 2px 0;
+      overflow: hidden;
+      backdrop-filter: blur(5px);
+      --webkit-backdrop-filter: blur(3px);
+      z-index: 10;
+      
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background-size: fill;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+
+      &:hover::before {transform: translateY(2em)}
+      &::before {
+        background-image: var(--drag-handle-icon);
+        transition: transform 0.25s ease-in;
+      }
+
+      &:hover::after {transform: translateY(0)}
+      &::after {
+        background-image: var(--stat-minus-icon);
+        transform: translateY(-2em);
+        transition: transform 0.25s ease-in;
+      }
+    }
+
+    &__empty-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 90%;
+      gap: 1em;
+      padding: 2em 1em;
+
+      &__broken-heart-img {
+        width: 7em;
+      }
+
+      &__description-h2 {
+        color: var(--font-p-color);
+        font-weight: 600;
+      }
+
+      &__description-h1 {
+        color: var(--font-h-color);
+        font-weight: bold;
+      }
+
+      &__btn {
+        font-weight: 600;
+        font-size: var(--font-size-medium);
+        color: var(--font-h-invert-color);
+        background-color: var(--primary-color);
+        border-radius: 5px;
+        padding: 1em 2em;
+        transition: background-color 0.25s ease;
+
+        &:hover {
+          background-color: var(--background-invert-color)
+        }
+      }
+    }
+
+    &__list {
+      display: grid;
+      flex-direction: column;
+      grid-template-columns: 1fr;
+      padding: 2em;
+      gap: 2em;
+      max-width: 40em;
+      max-height: 100%;
+      margin-inline: auto;
+      @include w.breakpoint-up (large) {
+        grid-template-columns: 1fr 1fr;
+        max-width: 100%;
+      }
+      @include w.breakpoint-up (xlarge) {max-width: 80%}
+
+      &__product {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+        'img title price'
+        'img title delete';
+        gap: 1em;
+        width: 100%;
+        height: auto;
+        transition: opacity 0.25s ease-in;
+
+        &__img {
+          grid-area: img;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          object-fit: contain;
+          object-position: center;
+          margin-block: auto;
+          background-color: white;
+        }
+
+        &__title {
+          grid-area: title;
+          margin-block: auto;
+          font-size: var(--font-size-small);
+          font-weight: 550;
+          color: var(--font-h-color);
+        }
+        
+        &__price {
+          grid-area: price;
+          font-size: var(--font-size-small);
+          color: var(--font-p-color);
+          margin-top: auto;
+          margin-left: auto;
+          
+          body.arabic & {
+            margin-left: 0;
+            margin-right: auto;
+          }
+        }
+
+        &__delete-btn {
+          width: 2em;
+          height: 2em;
+          background-image: var(--delete-icon);
+          background-repeat: no-repeat;
+          background-size: 80%;
+          background-position: center;
+          margin-inline: auto;
+          opacity: 0.8;
+          transition: opacity 0.25s ease;
+
+          body.arabic & {
+            margin-right: auto;
+            margin-left: 0;
+          }
+
+          &:hover {opacity: 1}
+        }
+
+      }
+    }
+  }
+}

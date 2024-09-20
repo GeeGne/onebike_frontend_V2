@@ -1,0 +1,140 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+
+//  Icon size 
+:root {
+  --icon-size: 1.3em;
+}
+
+// URLs 
+:root {
+  --heart-icon: url(/assets/img/icons/heart.svg);
+  --heart-fill-icon: url(/assets/img/icons/heart_fill.svg);
+  --heart-fill-default-icon: url(/assets/img/icons/heart_fill_default.svg);
+  --add-shoppingCart-icon: url(/assets/img/icons/add_shopping_cart.svg); 
+  --shoppingCart-fill-icon: url(/assets/img/icons/shopping_cart_fill.svg); 
+  --close-icon: url(/assets/img/icons/close.svg);
+  --add-icon: url(/assets/img/icons/add.svg);
+  --remove-icon: url(/assets/img/icons/remove.svg);
+  --delete-icon: url(/assets/img/icons/delete.svg);
+  --facebook-icon: url(/assets/img/icons/facebook.svg);
+  --whatsapp-icon: url(/assets/img/icons/whatsapp.svg);
+  --instagram-icon: url(/assets/img/icons/instagram.svg);
+  --person-fill-icon: url(/assets/img/icons/person_fill.svg);
+  --folder-managed-icon: url(/assets/img/icons/folder_managed.svg);
+  --user-icon: url(/assets/img/icons/user.svg);
+  --keyboard-double-arrow-icon: url(/assets/img/icons/keyboard_double_arrow_right.svg);
+  --drag-handle-icon: url(/assets/img/icons/drag_handle.svg);
+  --stat-minus-icon: url(/assets/img/icons/stat_minus.svg);
+  --arrow-drop-down-icon: url(/assets/img/icons/arrow_drop_down.svg);
+  --arrow-drop-down-v2-icon: url(/assets/img/icons/keyboard_arrow_down.svg);
+  --pen-icon: url(/assets/img/icons/pen.svg);
+  --more-vert-icon: url(/assets/img/icons/more_vert.svg);
+  --theme-icon: url(/assets/img/icons/sun.svg);
+  --boxSeam-icon: url(/assets/img/icons/box_seam.svg);
+  --boxSeam-primaryColor-icon: url(/assets/img/icons/box_seam_primaryColor.svg);
+  --gearWide-icon: url(/assets/img/icons/gear_wide.svg);
+  --gearWide-primaryColor-icon: url(/assets/img/icons/gear_wide_primaryColor.svg);
+  --cardList-icon: url(/assets/img/icons/card_list.svg);
+  --cardList-primaryColor-icon: url(/assets/img/icons/card_list_primaryColor.svg);
+  --caret-up-fill-icon: url(/assets/img/icons/caret_up_fill.svg);
+  --caret-down-fill-icon: url(/assets/img/icons/caret_down_fill.svg);
+  --info-icon: url(/assets/img/icons/info.svg);
+  --pencil-fill-icon: url(/assets/img/icons/pencil_fill.svg);
+  --camera-icon: url(/assets/img/icons/camera.svg);
+  --camera-light-icon: url(/assets/img/icons/camera_light.svg);
+
+  // NavBar
+  --shoppingCart-icon: url(/assets/img/icons/shopping_cart.svg);
+  --search-icon: url(/assets/img/icons/search.svg);
+  --search-invert-icon: url(/assets/img/icons/search_darkMode.svg);
+  --hamburger-icon: url(/assets/img/icons/menu.svg);
+  --favourite-icon: url(/assets/img/icons/heart.svg);
+  --user-icon: url(/assets/img/icons/user.svg);
+  --navBar-logoIcon-size: 3.5em;
+  --navBar-icon-size: 1.8em;
+
+  // HamMenu
+  // --hamMenu-menu-font: 1.5rem;
+  // --hamMenu-list-font: 1.3rem;
+  // --hamMenu-list-icon: 1.5rem;
+  --hamMenu-add-icon: url(/assets/img/icons/add.svg);
+  --hamMenu-remove-icon: url(/assets/img/icons/remove.svg);
+  --hamMenu-exitIcon-size: 2.3em;
+  --hamMenu-thirdList-addIcon-size: 1em;
+  // --hamMenu-list-icon: 1.5rem;
+  
+  // ImageSlider
+  --arrow-left-icon: url(/assets/img/icons/arrow_left.svg);
+  --arrow-left-hover-icon: url(/assets/img/icons/arrow_left_darkMode.svg);
+  --arrow-right-icon: url(/assets/img/icons/arrow_right.svg);
+  --arrow-right-hover-icon: url(/assets/img/icons/arrow_right_darkMode.svg);
+
+  // Product Controls
+  --controls-downArrowIcon-size: 1.3em;
+
+  // AdvertList
+  --advertList-increment-add-icon: url(/assets/img/icons/add.svg);
+  --advertList-decrement-add-icon: url(/assets/img/icons/minus.svg);
+  --advertList-brandLogo-filter-invert: invert(0%);
+}
+
+.dark-theme {
+  --heart-icon: url(/assets/img/icons/heart_darkMode.svg);
+  --heart-fill-icon: url(/assets/img/icons/heart_fill.svg);
+  --heart-fill-default-icon: url(/assets/img/icons/heart_fill_default_darkMode.svg);
+  --add-shoppingCart-icon: url(/assets/img/icons/add_shopping_cart_darkMode.svg); 
+  --shoppingCart-fill-icon: url(/assets/img/icons/shopping_cart_fill_darkMode.svg); 
+  --close-icon: url(/assets/img/icons/close_darkMode.svg);
+  --add-icon: url(/assets/img/icons/add_darkMode.svg);
+  --remove-icon: url(/assets/img/icons/remove_darkMode.svg);
+  --delete-icon: url(/assets/img/icons/delete_darkMode.svg);
+  --facebook-icon: url(/assets/img/icons/facebook_darkMode.svg);
+  --whatsapp-icon: url(/assets/img/icons/whatsapp_darkMode.svg);
+  --instagram-icon: url(/assets/img/icons/instagram_darkMode.svg);
+  --person-fill-icon: url(/assets/img/icons/person_fill_darkMode.svg);
+  --folder-managed-icon: url(/assets/img/icons/folder_managed_darkMode.svg);
+  --user-icon: url(/assets/img/icons/user_darkMode.svg);
+  --keyboard-double-arrow-icon: url(/assets/img/icons/keyboard_double_arrow_right_darkMode.svg);
+  --drag-handle-icon: url(/assets/img/icons/drag_handle_darkMode.svg);
+  --stat-minus-icon: url(/assets/img/icons/stat_minus_darkMode.svg);
+  --arrow-drop-down-icon: url(/assets/img/icons/arrow_drop_down_darkMode.svg);
+  --arrow-drop-down-v2-icon: url(/assets/img/icons/keyboard_arrow_down_darkMode.svg);
+  --pen-icon: url(/assets/img/icons/pen_darkMode.svg);
+  --theme-icon: url(/assets/img/icons/moon.svg);
+  --boxSeam-icon: url(/assets/img/icons/box_seam_darkMode.svg);
+  --boxSeam-primaryColor-icon: url(/assets/img/icons/box_seam_secondaryColor.svg);
+  --gearWide-icon: url(/assets/img/icons/gear_wide_darkMode.svg);
+  --gearWide-primaryColor-icon: url(/assets/img/icons/gear_wide_secondaryColor.svg);
+  --cardList-icon: url(/assets/img/icons/card_list_darkMode.svg);
+  --cardList-primaryColor-icon: url(/assets/img/icons/card_list_secondaryColor.svg);
+  --caret-up-fill-icon: url(/assets/img/icons/caret_up_fill_darkMode.svg);
+  --caret-down-fill-icon: url(/assets/img/icons/caret_down_fill_darkMode.svg);
+  --info-icon: url(/assets/img/icons/info_darkMode.svg);
+  --pencil-fill-icon: url(/assets/img/icons/pencil_fill_darkMode.svg);
+  --camera-icon: url(/assets/img/icons/camera_darkMode.svg);
+  --camera-light-icon: url(/assets/img/icons/camera_light_darkMode.svg);
+
+  // Navbar
+  --hamburger-icon: url(/assets/img/icons/menu_darkMode.svg);
+  --favourite-icon: url(/assets/img/icons/heart_darkMode.svg);
+  --search-icon: url(/assets/img/icons/search_darkMode.svg);
+  --search-invert-icon: url(/assets/img/icons/search.svg);
+  --shoppingCart-icon: url(/assets/img/icons/shopping_cart_darkMode.svg);
+  --user-icon: url(/assets/img/icons/user_darkMode.svg);
+  --more-vert-icon: url(/assets/img/icons/more_vert_darkMode.svg);
+  
+  // HamMenu
+  --hamMenu-add-icon: url(/assets/img/icons/add_darkMode.svg);
+  --hamMenu-remove-icon: url(/assets/img/icons/remove_darkMode.svg);
+
+  // ImageSlider
+  --arrow-left-icon: url(/assets/img/icons/arrow_left_darkMode.svg);
+  --arrow-left-hover-icon: url(/assets/img/icons/arrow_left.svg);
+  --arrow-right-icon: url(/assets/img/icons/arrow_right_darkMode.svg);
+  --arrow-right-hover-icon: url(/assets/img/icons/arrow_right.svg);
+
+  //AdvertList
+  --advertList-increment-add-icon: url(/assets/img/icons/add_darkMode.svg);
+  --advertList-decrement-add-icon: url(/assets/img/icons/minus_darkMode.svg);
+  --advertList-brandLogo-filter-invert: invert(100%);
+}

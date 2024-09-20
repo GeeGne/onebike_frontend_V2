@@ -1,0 +1,324 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+@use '/src/styles/utils/_StyleKits' as k;
+
+@keyframes productWindow-toggle-show {
+  from {
+    visibility: hidden; 
+    backdrop-filter: blur(0px); 
+    background-color: transparent;
+  }
+  to {
+    visibility: visible; 
+    backdrop-filter: blur(3px); 
+    background-color: var(--window-background-color);
+  }
+}
+@keyframes productWindow-toggle-hide {
+  from {
+    visibility: visible; 
+    backdrop-filter: blur(3px); 
+    background-color: var(--window-background-color);
+  }
+  to {
+    visibility: hidden; 
+    backdrop-filter: blur(0px); 
+    background-color: transparent;
+  }
+}
+
+.productWindow {
+  visibility: hidden; 
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2000;
+
+  animation-duration: 0.5s;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-iteration-count: 1;
+  &.show {animation-name: productWindow-toggle-show}
+  &.hide {animation-name: productWindow-toggle-hide}
+
+  &.show::before {animation-name: grow-and-rotate}
+  &.hide::before {animation-name: shrink-and-rotate}
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 80%;
+    aspect-ratio: 1 / 1;
+    border-radius: 25%;
+    background-color: var(--secondary-color);
+    border: solid var(--primary-color);
+    border-width: 6px 6px 0 0;
+    z-index: -1;
+    @include w.breakpoint-up(medium) {height: 80%; width: auto}
+    
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-iteration-count: 1;
+  }
+
+  &.show::after {animation-name: fade-in}
+  &.hide::after {animation-name: fade-out; animation-delay: 0.5s}
+  &::after {
+    content: "";
+    position: absolute;
+    top: 1em;
+    left: 1em;
+    width: 2em;
+    aspect-ratio: 1 / 1;
+    transform: rotate(45deg);
+    border-radius: 0.5em;
+    background-color: var(--background-color);
+    background-image: var(--add-icon);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+
+    animation-duration: 0.25s;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-iteration-count: 1;
+  }
+
+  &.show &__edit-cont {animation-name: fade-in; animation-delay: 0.5s}
+  &.hide &__edit-cont {animation-name: fade-out}
+  &__edit-cont {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    max-width: 700px;
+    
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 
+    'img img'
+    'nameTitle nameTitle'
+    'nameEnInpt nameArInpt'
+    'categoryTitle categoryTitle'
+    'categoryInpt typeInpt'
+    'priceTitle priceTitle'
+    'priceInpt discountInpt'
+    'stateBrandTitle stateBrandTitle'
+    'itemStateInpt brandInpt'
+    'saveBtn saveBtn'
+    ;
+    gap: 1em;
+    // background-color: var(--secondary-color);
+    padding-block: 0.5em;
+    padding-inline: 0.5em;
+
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-iteration-count: 1;
+
+    &__img-cont {grid-area: img}
+    &__nameTitle-cont {grid-area: nameTitle}
+    &__categoryTitle-cont {grid-area: categoryTitle}
+    &__priceTitle-cont {grid-area: priceTitle}
+    &__stateBrandTitle-cont {grid-area: stateBrandTitle}
+    &__nameEn-inpt {grid-area: nameEnInpt}
+    &__nameAr-inpt {grid-area: nameArInpt}
+    &__price-inpt {grid-area: priceInpt}
+    &__discount-inpt {grid-area: discountInpt}                   
+
+    &__img-cont {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &__img-wrapper {
+        position: relative;
+        width: 6em;
+        height: 6em;
+        background-color: var(--light-background-color);
+        background-image: var(--add-icon);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 5;
+          border: dashed 5px hsla(0, 0%, 0%, 0.5);
+          body.dark-theme &{border: dashed 5px hsla(0, 0%, 100%, 0.5);}
+        }
+
+        &__imgUpload-inpt {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          z-index: 15;
+          cursor: pointer;
+        }
+
+        &__img {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          aspect-ratio: 1 / 1;
+          z-index: 10;
+          background-color: white;
+          object-fit: contain;
+          object-position: center;
+          cursor: pointer;
+          &.hide {display: none}
+        }
+      }
+    }
+
+    &__nameTitle-cont, 
+    &__categoryTitle-cont,
+    &__priceTitle-cont,
+    &__stateBrandTitle-cont {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      color: var(--font-p-color);
+
+      &__name-spn,
+      &__category-spn,
+      &__price-spn, 
+      &__stateBrand-spn {
+        font-size: var(--font-size-small);
+        font-weight: 600;
+        color: var(--font-p-color);
+        margin-right: auto;
+        body.arabic & {margin-left: auto; margin-right: 0}
+      }
+    }
+
+    &__nameEn-inpt, 
+    &__nameAr-inpt, 
+    &__price-inpt, 
+    &__discount-inpt,
+    &__brand-inpt {
+      background-color: var(--background-color);
+      color: var(--font-h-color);
+      font-size: var(--font-size-extraSmall);
+      font-weight: 600;
+      padding-inline: 1em;
+      padding-block: 0.5em;
+      border-radius: 0.5em;
+      border: none
+    }
+
+    &__itemState-cont {grid-area: itemStateInpt}
+    &__category-cont {grid-area: categoryInpt}
+    &__type-cont {grid-area: typeInpt}
+    &__brand-cont {grid-area: brandInpt}
+
+    &__itemState-cont,
+    &__category-cont,
+    &__type-cont,
+    &__brand-cont {
+      position: relative;
+      z-index: 5;
+
+      &.focus::before {opacity: 1}
+      &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 0.5em;
+        transform: translateY(-50%);
+        width: 1.3em;
+        height: 1.3em;
+        background-image: var(--arrow-drop-down-icon);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+        opacity: 0.7;
+        transition: opacity 0.15s ease-out;
+        body.arabic & {right: auto; left: 0.5em}
+      }
+
+      &__inpt {
+        width: 100%;
+        background-color: var(--background-color);
+        color: var(--font-h-color);
+        font-size: var(--font-size-extraSmall);
+        font-weight: 600;
+        padding-inline: 1em;
+        padding-block: 0.5em;
+        border-radius: 0.5em;
+        border: none;
+      }
+
+      &.focus &__lst {visibility: visible; opacity: 1;}
+      &__lst {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        display: flex;
+        top: calc(100% + 2px);
+        left: 0;
+        width: 100%;
+        max-height: 8em;
+        overflow-y: scroll;
+        flex-direction: column;
+        padding-block: 0.5em;
+        background-color: var(--background-color);
+        border-radius: 0.5em;
+        box-shadow: 0 0 3px 1px var(--dark-background-color);
+        transition: opacity 0.25s ease-out;
+
+        &::-webkit-scrollbar {width: 0.4em}
+        &::-webkit-scrollbar-thumb {
+          cursor: grab;
+          background-color: var(--sideMenu-scrollBar-background-color);
+          transition: background-color 0.15s;
+          border-radius: 0.5em; 
+        }
+
+        &::-webkit-scrollbar-track {background-color: rgba(42, 42, 42, 0)}
+        &::-webkit-scrollbar-thumb:active {cursor: grabbing}
+        &::-webkit-scrollbar-thumb:hover {background-color: hsl(0, 0%, 50%)}
+      
+        &__itm {
+          color: var(--font-p-color);
+          font-size: var(--font-size-extraSmall);
+          font-weight: 550;
+          padding-block: 0.5em;
+          padding-inline: 0.5em;
+          transition: background-color 0.15s ease-out, color 0.15s ease-out;
+          cursor: pointer;
+          &:hover {background-color: var(--light-background-color); color: var(--font-h-color)}
+        }
+      }
+    }
+
+    &__save-btn {
+      grid-area: saveBtn;
+      background-color: var(--primary-color);
+      padding-block: 0.5em;
+      border-radius: 0.5em;
+      color: var(--font-h-invert-color);
+      font-size: var(--font-size-small);
+      font-weight: 600;
+      transition: opacity 0.15s ease-out;
+      &:hover {opacity: 0.7}
+    }
+  }
+}

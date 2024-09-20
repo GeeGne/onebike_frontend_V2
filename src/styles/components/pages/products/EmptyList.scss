@@ -1,0 +1,45 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+
+.empty-list-container {
+  padding: 2em 1em;
+
+  &.hide {display: none}
+
+  body.arabic & {direction: rtl}
+
+  & h1 {
+    margin-bottom: 0.7em;
+    color: var(--font-h-color);
+  }
+
+  & h2 {
+    margin-bottom: 0.7em;
+    color: var(--font-h-color);
+  }
+
+  & ul {
+    margin-bottom: 0.7em;
+    color: var(--font-p-color);
+    line-height: 1.3em;
+  }
+
+  & li {
+    list-style: inside;
+    color: var(--font-h-color);
+  }
+
+  & p {
+    margin-bottom: 0.7em;
+    color: var(--font-p-color);
+    line-height: 1.3em;
+  }
+
+  & b {
+    font-weight: 600;
+    color: var(--font-h-color);
+  }
+
+  & a {
+    color: var(--primary-color);
+  }
+}

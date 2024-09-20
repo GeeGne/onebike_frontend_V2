@@ -1,0 +1,300 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+
+.advertTile {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  body.arabic & {direction: rtl}
+  
+  &__panel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 1em;
+
+    &::before {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100vw;
+      height: 1px;
+      background-color: var(--font-p-color);
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0vw;
+      height: 3px;
+      background-color: var(--primary-color);
+      z-index: 5;
+      animation-name: widthChange-view;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-timeline: view(70% 5%);
+    }
+
+    &__title {
+      font-size: var(--font-size-medium);
+      color: var(--font-p-color);
+      font-weight: bold;
+      margin-right: auto;
+
+      body.arabic & {margin-right: 0; margin-left: auto}
+    }
+
+    &__see-more {
+      color: var(--font-p-color);
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    &__see-more:hover + &__doubleArrow,
+    &__doubleArrow:hover {
+      opacity: 1;
+      transform: translateX(0.2em);
+
+      body.arabic & {transform: translateX(-0.2em) rotate(180deg)}
+    }
+
+    &__doubleArrow {
+      opacity: 0;
+      width: 1.2em;
+      transform: translateX(-0.2em);
+      cursor: pointer;
+      transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+
+      body.arabic & {transform: translateX(0.2em) rotate(180deg)}
+    }   
+  }
+  
+  &__list {  
+    position: relative;
+
+    &__left-arr-btn {
+      left: 0;
+      background-image: var(--arrow-left-icon); 
+      &::before {background-image: var(--arrow-left-hover-icon)}
+    }
+
+    &__right-arr-btn {
+      right: 0;
+      background-image: var(--arrow-right-icon); 
+      &::before {background-image: var(--arrow-right-hover-icon)}
+    }
+    
+    &__left-arr-btn,
+    &__right-arr-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 2.5em;
+      height: 2.5em;
+      background-color: var(--imageSlider-arrows-background-color);
+      border: solid 2px var(--imageSlider-arrowsBorder-color);
+      border-radius: 50%;
+      background-size: 1em;
+      background-repeat: no-repeat;
+      background-position: center;
+      z-index: 200;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 15%;
+        height: 15%;
+        background-color: var(--imageSlider-arrows-background-color);
+        border-radius: 50%;
+        background-size: 1em;
+        background-repeat: no-repeat;
+        background-position: center;
+        opacity: 0;
+        transition: width 0.5s ease, height 0.5s ease, background-color 0.5s ease, opacity 0.5s ease;
+      }
+
+      &:hover::before {
+        background-color: var(--ImageSlider-arrows-hover-background-color);
+        width: 90%;  
+        height: 90%;
+        opacity: 1;
+      }
+    }
+    
+    &__products {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      gap: 1em;
+      overflow: hidden;
+      padding-inline: 1em;
+  
+      &__product {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+        flex-shrink: 0;
+        border: solid 1px var(--advertList-productContent-border-color);
+        padding: 0.5em;     
+        width: calc((100vw - 3em) / 2.1);
+        @include w.breakpoint-up (medium) {width: calc((100vw - 4em) / 3.5)}
+        @include w.breakpoint-up (large) {width: calc((100vw - 5em) / 4.5)}
+        @include w.breakpoint-up (xlarge) {width: calc((1400px - 6em) / 5.5)}
+        &.empty {background-color: var(--light-background-color); border: none}
+        
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0.8em;
+          right: 0.8em;
+          width: 1.6em;
+          height: 1.6em;
+          background-color: var(--background-color);
+          border-radius: 100%;
+        }
+
+        &.out-of-stock {
+          &::after {
+            content: "Out Of Stock";
+            position: absolute;
+            display: flex;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: white;
+            // backdrop-filter: brightness(50%);
+            background-color: var(--advertTile-no-product-background-color);
+            z-index: 50;
+            transition: background-color 0.25s ease-out;
+          }
+          body.arabic &::after {content: "المنتج غير متوفر"}
+          &:active::after {background-color: rgba(110, 0, 0, 0.5)}
+        }
+
+        &.empty &__heart-btn {background-color: var(--light-background-color); background-image: none}
+        &__heart-btn.added-to-wishlist {background-image: var(--heart-fill-icon)}
+        &__heart-btn {
+          position: absolute;
+          top: 0.8em;
+          right: 0.8em;
+          width: 1.6em;
+          height: 1.6em;
+          background-color: var(--background-color);
+          background-image: var(--heart-icon);
+          background-repeat: no-repeat;
+          background-size: 1em;
+          background-position: center;
+          border-radius: 100%;
+          z-index: 10;
+          transition: opacity 0.25s ease-in;
+        }
+  
+        &.empty &__img {background-color:var(--dark-background-color)}
+        &__img {
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          object-fit: contain;
+          background-color: white;
+        }
+  
+        &__discount {
+          background-color: var(--primary-color);
+          color: var(--font-h-invert-color);
+          border-radius: 40px 10%;
+          font-weight: bold;
+          padding: 0.3em 2em;
+          margin-inline: auto;
+        }
+        
+        &.empty &__description {background-color:var(--dark-background-color); width: 70%; height: 1em; border-radius: 2em}
+        &__description {
+          color: var(--font-h-color);
+        }
+  
+        &__brand-img {
+          width: 100%;
+          filter: var(--advertList-brandLogo-filter-invert);
+          object-fit: contain;
+          object-position: center;
+          flex: 1;
+        }
+
+        &.empty &__price {background-color:var(--dark-background-color); width: 40%; height: 1em; margin-bottom: 4em; border-radius: 2em}
+        &__price {
+          display: flex;
+          flex-flow: wrap-reverse;
+          align-items: end;
+          color: var(--font-h-color);
+          font-weight: 550;
+          gap: 0.3em;
+          margin-top: auto;
+  
+          .now {
+            font-size: var(--font-size-small);
+            font-weight: 600;
+          }
+  
+          .total {
+            font-size: var(--font-size-medium);
+          }
+          
+          .old {
+            font-size: var(--font-size-extraSmall);
+            font-weight: 300;
+            color: var(--font-p-color);
+            margin-left: auto;
+
+            body.arabic & {
+              margin-left: 0;
+              margin-right: auto;
+            }
+          }
+  
+          .currency-symbol {
+            font-size: var(--font-size-medium);
+          }
+        }
+        
+        &.empty &__add-btn {background-color: var(--dark-background-color); padding-block: 1em; border: none; border-radius: 0}
+        &__add-btn {
+          position: relative;
+          color: var(--font-p-color);
+          padding-block: 0.5em;
+          border: solid 2px var(--advertList-cartUtil-border-color);
+          border-radius: 5px;
+          font-size: var(--font-size-extraSmall);
+          font-weight: bold;
+  
+          &::before,
+          &::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0%;
+            transition: height 0.5s ease, background-color 0.15s ease;
+          }
+          &::before{background-color: var(--advertList-addToCart-background-color); z-index: -1}
+          &::after {backdrop-filter: invert(100%)}
+          &:hover::before,
+          &:hover::after {height: 100%}
+          &:active::before {background-color: var(--advertList-addToCart-active-background-color)}
+        }
+      }
+    }
+  }
+}

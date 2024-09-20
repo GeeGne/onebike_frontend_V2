@@ -1,0 +1,96 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+
+.navBottom {
+  position: relative;
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding-block: 0.5em;
+  background-color: var(--background-color);
+  border: solid var(--boxEnd-border-background-color);
+  border-width: 1px 0 0 0;
+  transition: transform 0.35s ease-out, background-color 0.5s ease-in;
+
+  body.arabic & {direction: rtl}
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1px;
+    height: 80%;
+    background-color: var(--boxEnd-border-background-color);
+  }
+
+  &__favourite {background-image: var(--heart-icon)}
+  &__user {background-image: var(--user-icon)}
+
+  // &__favourite::before {background-image: var(--heart-icon)}
+  // &__user::before {background-image: var(--user-icon)}
+
+  &__favourite,
+  &__user {
+    display: flex;
+    position: relative;
+    font-size: inherit;
+    width: var(--navBar-icon-size);
+    height: var(--navBar-icon-size);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: opacity 0.25s ease-in;
+
+    &:hover::before {background-color: var(--light-background-color)}
+    &::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: calc(var(--navBar-icon-size) + 1em);
+      height: calc(var(--navBar-icon-size) + 1em);
+      border-radius: 100%;
+      background-color: transparent;
+      transition: background-color 0.25s ease;
+      z-index: -1;
+    }
+
+    &__img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 100%;
+    }
+
+  }
+  
+  &__favourite {
+    body.arabic &::after {
+      right: auto;
+      left: -0.3em
+    }
+    &::after {
+      content: "";
+      position: absolute;
+      visibility: visible;
+      top: -0.3em;
+      right: -0.3em;
+      width: 0.7em;
+      height: 0.7em;
+      background-color: var(--red-color);
+      border-radius: 1em;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    &.empty::after{
+      visibility: hidden;
+      opacity: 0;
+      transform: scale(0);
+    }
+  }
+
+  @include w.breakpoint-up (medium) {
+    display: none;
+  }
+}

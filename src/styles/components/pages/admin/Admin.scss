@@ -1,0 +1,63 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+@use '/src/styles/utils/_StyleKits' as k;
+
+.admin {
+  display: flex;
+  flex-direction: column;
+  // background-color: var(--light-background-color);
+  padding-inline: 1em;
+  body.arabic & {direction: rtl}
+
+  &__breadCrumb-sec {
+    padding-block: 1em;
+  }
+
+  &__title-sec {
+    display: flex;
+    padding-block: 1em;
+    gap: 1em;
+
+    &__h1 {
+      color: var(--font-h-color);
+      white-space: nowrap;
+      text-overflow: ellipsis; 
+      margin-right: auto;
+      body.arabic & {margin-left: auto; margin-right: 0}
+    }
+
+    &__content-btn {@include k.diamond-btn-styles (var(--cardList-primaryColor-icon), var(--background-color))}
+    &__general-btn {@include k.diamond-btn-styles (var(--gearWide-primaryColor-icon), var(--background-color))}
+    &__orders-btn {@include k.diamond-btn-styles (var(--boxSeam-primaryColor-icon), var(--background-color))}
+
+    &__content-btn:hover, &__content-btn.clicked {@include k.diamond-btn-styles (var(--cardList-icon), var(--primary-color))}
+    &__general-btn:hover, &__general-btn.clicked {@include k.diamond-btn-styles (var(--gearWide-icon), var(--primary-color))}
+    &__orders-btn:hover, &__orders-btn.clicked {@include k.diamond-btn-styles (var(--boxSeam-icon), var(--primary-color))}
+
+    &__content-btn,
+    &__general-btn,
+    &__orders-btn {
+      position: static;
+      transform: rotate(45deg);
+      width: 1.7em;
+      height: 1.7em;
+      border: solid 1px var(--primary-color);
+      transition: background-color 0.15s ease-out;
+
+      &.clicked,
+      &:hover {
+        position: static;
+        transform: rotate(45deg);
+        width: 1.7em;
+        height: 1.7em;
+        border: none;
+      }
+      
+      &:hover::before, &.clicked::before {background-size: 1.1em; filter: invert(100%)}
+      &::before {
+        background-size: 1em;
+        transition: background-size 0.15s ease-out;
+      }
+    }
+  }
+
+}

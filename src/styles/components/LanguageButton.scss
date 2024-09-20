@@ -1,0 +1,75 @@
+.language-btn {
+  position: relative;
+  display: flex;
+  color: var(--font-p-color);
+  border: solid var(--font-p-color);;
+  border-width: 0 0 2px 0;
+  z-index: 30;
+  cursor: pointer;
+
+  &:hover {color: var(--font-h-color)}
+
+  &__display {
+    font-weight: 600;
+    padding-block: 0.2em;
+    margin-right: 1.5em;
+    font-size: var(--font-size-extraSmall);
+  }
+  body.arabic &__display {
+    margin-right: 0;
+    margin-left: 1.5em;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    width: 1.3em;
+    height: 1.3em;
+    background-image: var(--arrow-drop-down-icon);
+    background-size: contain;
+    background-repeat: no-repeat;
+    transform: var(--rotate-icon, rotate(0deg));
+    transform-origin: center;
+    transition: transform 0.5s ease;
+  }
+  body.arabic &::before {
+    right: auto;
+    left: 0;
+  }
+
+  &__list {
+    position: absolute;
+    top: calc(100% + 0.7em);
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 10px 0.1px hsl(0, 0%, 70%, 0.8);
+    body.arabic & {direction: rtl}
+
+    & li {  
+      position: relative;
+      display: flex;
+      width: 100%;
+      background-color: var(--language-list-color);
+      color: var(--font-h-color);
+      font-weight: 600;
+      padding: 1em 0.5em;
+      transition: background-color 0.15s ease;
+
+      &:hover {background-color: var(--language-list-color-hover)}
+    }
+  }
+
+  & li:first-child::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 75%;
+    height: 1px;
+    background-color: hsl(0, 0%, 60%);
+    transform: translateX(-50%);
+  }
+}

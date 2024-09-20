@@ -1,0 +1,27 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto auto;
+  max-width: 1400px;
+  min-height: 100vh;
+  margin: 0 auto;
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+  }
+  &__main {
+    position: relative;
+  }
+  &__footer {
+  }
+
+  &__navBottom {
+    position: sticky;
+    bottom: 0;
+    z-index: 1000;
+  }
+}

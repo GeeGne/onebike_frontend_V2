@@ -1,0 +1,503 @@
+@use '/src/styles/utils/_BreakPoints' as w;
+@use '/src/styles/utils/_StyleKits' as k;
+
+@keyframes delete-window-show {
+  from {
+    visibility: hidden;
+    backdrop-filter: blur(0);
+    background-color: transparent;
+  }
+
+  to {
+    visibility: visible;
+    backdrop-filter: blur(3px);
+    background-color: var(--window-background-color);
+  }
+}
+
+@keyframes delete-window-hide {
+  from {
+    visibility: visible;
+    backdrop-filter: blur(3px);
+    background-color: var(--window-background-color);
+  }
+
+  to {
+    visibility: hidden;
+    backdrop-filter: blur(0);
+    background-color: transparent;
+  }
+}
+
+@keyframes delete-window-wrapper-show {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes delete-window-wrapper-hide {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+}
+
+.cm {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1em;
+  padding-top: 1em;    
+  background-color: var(--light-background-color);
+  gap: 1em;
+  border: solid var(--primary-color);
+  border-width: 3px 0 0 0;
+  transition: height 0.5s ease;
+  overflow: hidden;
+
+  &__delete-window {
+    visibility: hidden;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    backdrop-filter: blur(3px);
+    z-index: 2000;
+
+    animation-duration: 0.25s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+    &.show {animation-name: delete-window-show}
+    &.hide {animation-name: delete-window-hide; animation-delay: 0.25s}
+    
+    &.show &__wrapper {animation-name: delete-window-wrapper-show}    
+    &.hide &__wrapper {animation-name: delete-window-wrapper-hide; animation-delay: 0s;}    
+    &__wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20em;
+      background-color: var(--background-color);
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-areas:
+      'title title'
+      'description description'
+      'cancel delete'
+      ;
+      align-items: center;
+      justify-content: center;
+      border-radius: 1em;
+      overflow: hidden;
+      box-shadow: 0 0 10px 1px hsla(0, 0%, 0%, 0.6);
+
+      animation-duration: 0.5s;
+      animation-timing-function: cubic-bezier(0.68,-0.55,0.27,1.55);
+      animation-fill-mode: both;
+  
+      &__title {
+        grid-area: title;
+        text-align: center;
+        padding-block: 1em;
+        color: var(--font-p-color);
+      }
+
+      &__description {
+        grid-area: description;
+        position: relative;
+        text-align: center;
+        font-weight: 600;
+        padding-inline: 1em;
+        padding-bottom: 1em;
+        color: var(--font-h-color);
+
+        &::before {
+          content: "";
+          position: absolute;
+          top: 100%;
+          right: 0;
+          width: 100%;
+          height: 1px;
+          background-color: var(--endElement-border-background-color);
+        }
+      }
+
+      &__cancel-btn {
+        grid-area: cancel;
+        position: relative;
+        &:hover {background-color: var(--light-background-color)}
+
+        &::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 1px;
+          height: 100%;
+          background-color: var(--endElement-border-background-color);
+          body.arabic & {right: auto; left: 0}
+        }
+      }
+
+      &__delete-btn {
+        grid-area: delete;
+        &:hover {background-color: var(--red-color)}
+      }
+
+      &__delete-btn,
+      &__cancel-btn {
+        font-size: var(--font-size-extraSmall);
+        color: var(--font-p-color);
+        font-weight: 600;
+        padding-block: 1em;
+        transition: background-color 0.15s ease-out, color 0.15s ease-out;
+        &:hover {color: var(--font-h-color)}
+      }
+    }
+  }
+
+  &__header-row {
+    position: relative;
+    display: flex;
+    padding-inline: 0.5em 2em;
+
+    &__addProduct-btn {
+      @include k.diamond-btn-styles (var(--add-icon), var(--primary-color));
+      top: 50%;
+      right: 0.5em;
+      transform: translateY(-50%) rotate(45deg);
+      width: 1.5em;
+      height: 1.5em;
+      &::before {filter: invert(100%)}
+
+      body.arabic & {left: 0.5em; right: auto}
+    }
+
+    &__spn {
+      display: flex;
+      flex: 1;
+      justify-content: center;
+      color: var(--font-p-color);
+      font-weight: 600;
+    }
+  }
+
+  &__lst {
+
+    &__itm {
+      display: flex;
+      flex-direction: column;
+      max-height: 4em;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(1,1.72,.32,.64), opacity 0.25s ease-out;
+      &:nth-child(2n) {background-color: var(--background-color)}
+
+      &.clicked &__info-cont__toggles-cont__edit-btn::before{background-color: var(--secondary-color)}
+      &__info-cont {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr; 
+        align-items: center;
+        padding-inline: 0.5em 2em;
+        padding-block: 0.5em;
+
+        &__toggles-cont {
+          position: absolute;
+          display: flex;
+          right: 0.3em;
+          top: 50%;
+          transform: translateY(-50%);
+          gap: 0.3em;
+          body.arabic & {right: auto; left: 0.5em}
+
+          &__edit-btn {
+            position: relative;
+            width: 1em;
+            height: 1em;
+            background-image: var(--more-vert-icon);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+
+            &::before {
+              content: "";
+              position: absolute;
+              top: -0.2em;
+              left: -0.2em;
+              right: -0.2em;
+              bottom: -0.2em;
+              border-radius: 2em;
+              z-index: -1;
+              transition: background-color 0.25s ease-out;
+            }
+
+            &:hover::before {background-color: var(--dark-background-color)}
+          }
+
+          &__delete-btn {
+            position: relative;
+            width: 1em;
+            height: 1em;
+            background-image: var(--delete-icon);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;  
+
+            &::before {
+              content: "";
+              position: absolute;
+              top: -0.2em;
+              left: -0.2em;
+              right: -0.2em;
+              bottom: -0.2em;
+              border-radius: 2em;
+              z-index: -1;
+              transition: background-color 0.25s ease-out;
+            }
+
+            &:hover::before {background-color: var(--dark-background-color)}
+          }
+        }  
+        
+        &__name-cont {justify-content: start !important}
+        &__name-cont,
+        &__id-cont,
+        &__price-cont {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5em;
+          color: var(--font-p-color);
+          @include w.breakpoint-up (medium) {gap: 1em}
+
+          &__state {
+            padding: 0.3em;
+            border-radius: 1em;
+            filter: drop-shadow(0 0px 3px hsla(0, 0%, 0%, 0.3));
+            
+            &.green {background-color: var(--green-color); filter: drop-shadow(0 0px 2px var(--green-color))}
+            &.yellow {background-color: var(--yellow-color); filter: drop-shadow(0 0px 2px var(--yellow-color))}
+            &.red {background-color: var(--red-color); filter: drop-shadow(0 0px 2px var(--red-color))}
+          }
+
+          &__img {
+            min-width: 3em;
+            max-width: 3em;
+            min-height: 3em;
+            max-height: 3em;
+            object-fit: contain;
+            object-position: center;
+            background-color: white;
+          }
+  
+          &__title {
+            color: var(--font-p-color);
+            font-size: var(--font-size-extraSmall);
+          }
+  
+          &__id {
+            color: var(--font-p-color);
+            font-size: var(--font-size-extraSmall);
+          }
+  
+          &__price {
+            color: var(--font-p-color);
+            font-size: var(--font-size-extraSmall);
+          }
+  
+          &__discount {
+            color: var(--font-p-color);
+            font-size: var(--font-size-extraSmall);
+          }  
+          
+        }  
+      }
+
+      &__edit-cont {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: 
+        'nameTitle nameTitle'
+        'nameEnInpt nameArInpt'
+        'categoryTitle categoryTitle'
+        'categoryInpt typeInpt'
+        'priceTitle priceTitle'
+        'priceInpt discountInpt'
+        'stateBrandTitle stateBrandTitle'
+        'itemStateInpt brandInpt'
+        'imgInpt saveBtn'
+        ;
+        gap: 0.5em;
+        background-color: var(--secondary-color);
+        padding-block: 0.5em;
+        padding-inline: 0.5em;
+
+        &__nameTitle-cont {grid-area: nameTitle}
+        &__categoryTitle-cont {grid-area: categoryTitle}
+        &__priceTitle-cont {grid-area: priceTitle}
+        &__stateBrandTitle-cont {grid-area: stateBrandTitle}
+        &__nameEn-inpt {grid-area: nameEnInpt}
+        &__nameAr-inpt {grid-area: nameArInpt}
+        &__price-inpt {grid-area: priceInpt}
+        &__discount-inpt {grid-area: discountInpt}
+        &__img-inpt {grid-area: imgInpt} 
+
+        &__nameTitle-cont, 
+        &__stateBrandTitle-cont, 
+        &__categoryTitle-cont,
+        &__priceTitle-cont {
+          display: flex;
+          align-items: center;
+          gap: 1em;
+          color: var(--font-p-color);
+
+          &__name-spn,
+          &__category-spn,
+          &__stateBrand-spn,
+          &__price-spn {
+            color: var(--font-p-color);
+            font-weight: 600;
+            font-size: var(--font-size-small);
+            margin-right: auto;
+            body.arabic & {margin-left: auto; margin-right: 0}
+          }
+
+          &__enVal-spn,
+          &__arVal-spn,
+          &__categoryVal-spn,
+          &__typeVal-spn,
+          &__priceVal-spn,
+          &__discountVal-spn,
+          &__stateVal-spn,
+          &__brandVal-spn {
+            font-size: var(--font-size-extraSmall);
+            color: var(--font-h-color);
+            font-weight: 600;
+          }
+        }
+
+        &__nameEn-inpt, 
+        &__nameAr-inpt, 
+        &__price-inpt, 
+        &__img-inpt, 
+        &__discount-inpt {
+          background-color: var(--background-color);
+          color: var(--font-h-color);
+          font-size: var(--font-size-extraSmall);
+          font-weight: 600;
+          padding-inline: 1em;
+          padding-block: 0.5em;
+          border-radius: 0.5em;
+          border: none
+        }
+
+        &__itemState-cont {grid-area: itemStateInpt}
+        &__category-cont {grid-area: categoryInpt}
+        &__type-cont {grid-area: typeInpt}
+        &__brand-cont {grid-area: brandInpt}
+
+        &__itemState-cont,
+        &__category-cont,
+        &__brand-cont,
+        &__type-cont {
+          position: relative;
+          z-index: 5;
+
+          &.focus::before {opacity: 1}
+          &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: 0.5em;
+            transform: translateY(-50%);
+            width: 1.3em;
+            height: 1.3em;
+            background-image: var(--arrow-drop-down-icon);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.7;
+            transition: opacity 0.15s ease-out;
+            body.arabic & {right: auto; left: 0.5em}
+          }
+
+          &__inpt {
+            width: 100%;
+            background-color: var(--background-color);
+            color: var(--font-h-color);
+            font-size: var(--font-size-extraSmall);
+            font-weight: 600;
+            padding-inline: 1em;
+            padding-block: 0.5em;
+            border-radius: 0.5em;
+            border: none;
+          }
+
+          &.focus &__lst {visibility: visible; opacity: 1;}
+          &__lst {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            display: flex;
+            top: calc(100% + 2px);
+            left: 0;
+            width: 100%;
+            max-height: 8em;
+            overflow-y: scroll;
+            flex-direction: column;
+            padding-block: 0.5em;
+            background-color: var(--background-color);
+            border-radius: 0.5em;
+            box-shadow: 0 0 3px 1px var(--dark-background-color);
+            transition: opacity 0.25s ease-out;
+
+            &::-webkit-scrollbar {width: 0.4em}
+            &::-webkit-scrollbar-thumb {
+              cursor: grab;
+              background-color: var(--sideMenu-scrollBar-background-color);
+              transition: background-color 0.15s;
+              border-radius: 0.5em; 
+            }
+
+            &::-webkit-scrollbar-track {background-color: rgba(42, 42, 42, 0)}
+            &::-webkit-scrollbar-thumb:active {cursor: grabbing}
+            &::-webkit-scrollbar-thumb:hover {background-color: hsl(0, 0%, 50%)}
+          
+            &__itm {
+              color: var(--font-p-color);
+              font-size: var(--font-size-extraSmall);
+              font-weight: 550;
+              padding-block: 0.5em;
+              padding-inline: 0.5em;
+              transition: background-color 0.15s ease-out, color 0.15s ease-out;
+              cursor: pointer;
+              &:hover {background-color: var(--light-background-color); color: var(--font-h-color)}
+            }
+          }
+        }
+
+        &__save-btn {
+          grid-area: saveBtn;
+          background-color: var(--primary-color);
+          border-radius: 0.5em;
+          color: var(--font-h-invert-color);
+          font-size: var(--font-size-small);
+          font-weight: 600;
+          transition: opacity 0.15s ease-out;
+          &:hover {opacity: 0.7}
+        }
+      }
+    }
+  }
+}
