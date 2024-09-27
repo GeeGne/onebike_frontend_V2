@@ -1,9 +1,9 @@
 // HOOKS
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import useFetchAuth from '/src/hooks/useFetchAuth';
-import useFetchUserData from '/src/hooks/useFetchUserData';
+// import useFetchUserData from '/src/hooks/useFetchUserData';
 import useFetchProductsData from '/src/hooks/useFetchProductsData';
 import useFetchRolesData from '/src/hooks/useFetchRolesData';
 import useFetchHomePageBannersData from '/src/hooks/useFetchHomePageBannersData';
@@ -57,12 +57,12 @@ function App () {
 
   const [darkMode, setDarkMode] = useState(false);
   const [lan, setLanguage] = useState('en');
-  useFetchAuth();
-  useFetchUserData();
-  useFetchProductsData();
-  useFetchRolesData();
-  useFetchHomePageBannersData();
-  useFetchWebsiteDetailsData();
+  useFetchAuth(); 
+  // useFetchUserData();
+  // useFetchProductsData();
+  // useFetchRolesData();
+  // useFetchHomePageBannersData();
+  // useFetchWebsiteDetailsData();
 
   const themeData = setDarkMode;
   const languageData = setLanguage;

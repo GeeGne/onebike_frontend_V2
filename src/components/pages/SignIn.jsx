@@ -2,6 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {Helmet} from 'react-helmet-async';
+import { useQuery } from 'react-query';
 
 // FIREBASE
 import {auth} from "/src/firebase/authSignUp";
@@ -36,12 +37,38 @@ function SignIn ({darkMode, lan}) {
   const navigate = useNavigate();
   
   const {headToCheckouts, setHeadToCheckouts} = useOrderStore();
-  const { user } = useDataStore();
+
+  const { data: user, refetch: signinUser } = useQuery('user', async () => {
+    const {email, password} = formData;
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error (error.message);
+      }
+
+      const user = await response.json();
+      return user;
+    } catch (err) {
+      console.error('Error: failed to signup: ', err);
+      // setAlertText(handleAuthError(err, en));
+      setAlertText(err.message);
+      setNewAlert(Math.random());
+      return false;
+    } 
+  }, {  enabled: false });
+  console.log('user: ', user);
+
   const redirector = new Redirector(navigate, headToCheckouts, setHeadToCheckouts);
   const [processing, setProcessing] = useState(false);
   const [newAlert, setNewAlert] = useState(0);
   const [alertText, setAlertText] = useState(null);
-  // const [user, setUser] = useState(null);
   const [forgotPass, setForgotPass] = useState(false);
   const [formData, setFormData] =  useState({
     email: '',
@@ -69,20 +96,6 @@ function SignIn ({darkMode, lan}) {
   }, [user]);
 
   const handleSubmit = async e => {
-    
-    const signIn = async () => {
-      const {email, password} = formData;
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        return true;
-      } catch (err) {
-        console.error(err);
-        setAlertText(handleAuthError(err, en));
-        setNewAlert(Math.random());
-        return false;
-      } 
-    }
 
     const sendPassReset = async () => {
       const {email} = formData;
@@ -100,20 +113,26 @@ function SignIn ({darkMode, lan}) {
     }
 
     e.preventDefault();
-    if (!validateInputs()) return;
     setProcessing(true);
 
-    if (forgotPass) {
-      console.log('fogot pass')
-      const isOperationSucessful = await sendPassReset();
-      if (isOperationSucessful) setForgotPass(prevVal => !prevVal) 
-      setProcessing(false);
-      return;
-    }
+    try {
+      const isInputsValid = validateInputs();
+      if (!isInputsValid) throw new Error ('Not all inputs are valid');
 
-    const isOperationSucessful = await signIn();
-    setProcessing(false);
-    setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500);
+      if (forgotPass) {
+        // const isOperationSucessful = await sendPassReset();
+        // if (isOperationSucessful) setForgotPass(prevVal => !prevVal) 
+        // setProcessing(false);
+        return;
+      }
+
+      await signinUser();
+    } catch (err) {
+      console.error(err.message)
+      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
+    } finally {
+      setProcessing(false);
+    }
   }
 
   const handleChange = e => {

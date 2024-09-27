@@ -17,7 +17,12 @@
       padding-block: 25vw;
     }
     @include w.breakpoint-up (xlarge) {padding-block: 15vw;}
-    
+
+
+    &__password  {
+      & input {font-weight: bold}
+    }
+
     &__password,
     &__email {
       position: relative;
@@ -60,7 +65,6 @@
         border-radius: 5px;
         padding: 1em;
         transition: border 0.25s ease-out;
-        
         // &:hover {border: solid var(--secondary-color) 2px}
         // &:focus {border: solid var(--primary-color) 2px}
       }

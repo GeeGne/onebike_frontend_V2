@@ -47,7 +47,9 @@
       & p {color: var(--font-h-color)}
     }
 
-   &__phone {& input {body.arabic & {direction: ltr}}}
+    &__password  { & input { font-weight: bold } }
+    &__cpassword  { & input { font-weight: bold } }
+    &__phone {& input {body.arabic & {direction: ltr}}}
     &__fname,
     &__lname,
     &__email,

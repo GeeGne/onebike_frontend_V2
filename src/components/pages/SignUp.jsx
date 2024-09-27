@@ -2,13 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Helmet} from 'react-helmet-async';
-
-// FIREBASE
-import {auth} from "/src/firebase/authSignUp";
-import {createUserWithEmailAndPassword, onAuthStateChanged, updateProfile} from "firebase/auth";
-import handleAuthError from "/src/firebase/handleAuthError";
-import {db} from '/src/firebase/fireStore';
-import {doc, setDoc, updateDoc} from 'firebase/firestore';
+import { useQuery } from 'react-query';
 
 // COMPONENTS
 import Banner from '/src/components/Banner';
@@ -47,9 +41,35 @@ function SignUp ({darkMode, lan}) {
   const {pathname} = window.location;
   const navigate = useNavigate();
   const {headToCheckouts, setHeadToCheckouts} = useOrderStore();
-  const { user } = useDataStore();
-  const redirector = new Redirector(navigate, headToCheckouts, setHeadToCheckouts);
 
+  const { data: user, error, isLoading, refetch: signupUser } = useQuery('user', async () => {
+    const {fname, lname, email, phone, password, newsLetter} = formData
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/signup`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: fname + lname, email, phone, password })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
+
+      const user = await response.json();
+      return user;
+    } catch (err) {
+      console.error('Error while signing up: ', err);
+      // setAlertText(handleAuthError(err, en));
+      setAlertText(err.message);
+      setNewAlert(Math.random());
+      return false;
+    }
+  }, { enabled: false });
+
+  const redirector = new Redirector(navigate, headToCheckouts, setHeadToCheckouts);
+  console.log('user', user);
   const [processing, setProcessing] = useState(false);
   const [alertText, setAlertText] = useState(null);
   const [newAlert, setNewAlert] = useState(0);
@@ -153,63 +173,24 @@ function SignUp ({darkMode, lan}) {
 
     e.preventDefault();
     removeErrorPopup();
-    
-    if (!validateInputs()) return;
     setProcessing(true);
-    const isOperationSucesssful = await signUpWithEmailAndPass();
-    if (isOperationSucesssful) {
-      const user = isOperationSucesssful;
-      await submitForm(user);
-      setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500);
-    } else {
+
+    try {
+      const isInputsValid = validateInputs();
+      if (!isInputsValid) throw new Error('Not all inputs are valid');
+
+      const user = await signupUser();
+      if (!user) throw new Error('Signing up has failed');
+
+      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
+    } catch (err) {
+      console.error('An Error while submiting: ', err);
       formEL.current.style.border = 'solid var(--red-color) 2px';
-    }
-    setProcessing(false);
-  }
-
-  const signUpWithEmailAndPass = async () => {
-    const {email, password} = formData;
-    try {
-      const userCredintial = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredintial.user;
-      return user;
-    } catch (err) {
-      console.error(err);
-      setAlertText(handleAuthError(err, en));
-      setNewAlert(Math.random());
-      return false;
+    } finally {
+      setProcessing(false);
     }
   }
 
-  const submitForm = async (user) => {
-    const {fname, lname, email, phone, newsLetter} = formData
-    try {
-      await updateProfile(user, {
-        displayName: fname + ' ' + lname,
-      });
-
-      await setDoc(doc(db, 'users', user.uid), {
-        createdAt: new Date().toISOString(),
-        userId: user.uid,
-        fullName: fname + ' ' + lname,
-        phone,
-        email,
-        role: 'user',
-      });
-      
-      if (newsLetter) {
-        await setDoc(doc(db, 'newsLetter', user.uid), {
-          createdAt: new Date().toISOString(),  
-          email
-        });
-      } 
-    } catch (err) {
-      console.error(err);
-      setAlertText(handleAuthError(err, en));
-      setNewAlert(Math.random());
-    }
-  }
-  
   const validateInputs = () => {
 
     const handleError = (errorMessage, popupEL, formChildEL) => {

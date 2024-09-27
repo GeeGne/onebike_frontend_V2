@@ -1,20 +1,24 @@
 // HOOKS
-import React, { useEffect } from 'react';
-
-// STORE
-import { useDataStore } from '/src/store/store';
-
-// FIREBASE
-import { auth } from '/src/firebase/authSignUp';
-import { onAuthStateChanged } from "firebase/auth";
+import { useQuery } from 'react-query';
 
 function useFetchAuth () {
-  const setUser = useDataStore(state => state.setUser);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => setUser(user));
-    return () => unsubscribe();
-  }, []);
+    const userAuth = useQuery('user', async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/me`, {
+          method: 'POST',
+          credentials: 'include'
+        });
+        if (!response.ok) throw new Error ('no user to auth');
+
+        const user = await response.json();
+        return user;
+      } catch (err) {
+        console.info('note: ', err);
+        return null;
+      }
+    });
+  
 }
 
 export default useFetchAuth;

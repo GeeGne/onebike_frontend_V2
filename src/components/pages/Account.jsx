@@ -2,6 +2,7 @@
 import React, {useState, useRef, useEffect, useReducer} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Helmet} from 'react-helmet-async';
+import { useQuery } from 'react-query';
 
 // COMPONENTS
 import DisplayWebImg from '/src/components/DisplayWebImg';
@@ -10,22 +11,17 @@ import Alert from '/src/components/Alert';
 import ProgressActivity from '/src/components/ProgressActivity';
 
 // FIREBASE
-import {auth} from '/src/firebase/authSignUp';
-import {signOut, updateProfile, signInWithEmailAndPassword, onAuthStateChanged} from "firebase/auth";
 import {db} from '/src/firebase/fireStore';
-import {getDoc, doc, collection, getDocs, updateDoc} from 'firebase/firestore';
+import { doc, updateDoc} from 'firebase/firestore';
 import { storage } from '/src/firebase/storage';
 import { ref, uploadBytes } from "firebase/storage";
 
 // SCSS
 import '/src/styles/components/pages/Account.scss';
 
-// STORE
-import { useDataStore } from '/src/store/store';
-
 // REDUCERS
 import editAltWindowReducer from '/src/reducers/editAltWindowReducer';
-import editPersonalDetailsWindowReducer from '/src/reducers/editPersonalDetailsWindowReducer';
+import editProfileWindowReducer from '/src/reducers/editProfileWindowReducer';
 
 // UTILS 
 import Redirector from '/src/utils/Redirector';
@@ -54,14 +50,78 @@ function Account ({darkMode, lan}) {
   const pageKeywords = "ONEBIKE, account, manage account, orders, preferences, bicycle, bicycle parts, Syria";
   const en = lan === 'en';
 
-  const [ editPersonalDetails, dispatch ] = useReducer(editPersonalDetailsWindowReducer, { toggle: '' });
-  const { user, userData, rolesData, setRefreshUserData } = useDataStore();
+  // const { user, user, rolesData, setRefreshUserData } = useDataStore();
+  // const { rolesData, setRefreshUserData } = useDataStore();
+  const { data: user, refetch: signoutUser } = useQuery('user', async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/signout`, {
+        method: 'POST',
+        credentials: 'include'
+      })  
+      if (!response.ok) {
+        const error = response.json()
+        throw new Error (error.message);
+      }
+
+      setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500);
+    } catch (err) {
+      console.error('Error while removed jwt token: ', err);
+    } finally {
+      return null;
+    }
+  }, { enabled: false });
+
+  const { refetch: updateProfile } = useQuery('user', async () => {
+  
+    setActivity(true);
+    const { toggle, ...profileData } = editProfile;
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/user/profile/${user?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(profileData)
+      })
+      if (!response.ok) throw new Error ('failed to update profile');
+
+      const updatedUser = await response.json();
+      if (!updatedUser) ('unknown error has accured');
+
+      dispatch({ type: 'user_data_is_updated' });
+      setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')  
+      return updatedUser;
+    } catch (err) {
+      console.error('Error while updaing profile: ', err);
+      setAlertText(en ? 'Error updating Persoanl Data' : 'خطأ في تحديث البيانات الشخصية')
+      return user;
+    } finally {
+      setNewAlert(Math.random());
+      setActivity(false);  
+    }
+  }, { enabled: false });
+
+  const [ editProfile, dispatch ] = useReducer(editProfileWindowReducer, { 
+    toggle: '', 
+    full_name: '', 
+    phone: '', 
+    address_details: '', 
+    second_address: '',
+    notes: '' 
+  });
+
+  useEffect(() => {
+    dispatch({type: 'user_data_has_changed', ...user});
+  }, [user]);
+  console.log('editProfile: ', editProfile);
+
+
   const [ pfpSrc, setPfpSrc] = useState("");
   const [ newAlert, setNewAlert ] = useState(0);
   const [ alertText, setAlertText ] = useState(null);
   const [ activity, setActivity ] = useState(false);
 
-  const ordersData = userData?.ordersData || [];
+  const ordersData = user?.ordersData || [];
   const navigate = useNavigate();
   const redirector = new Redirector(navigate);
 
@@ -86,12 +146,12 @@ function Account ({darkMode, lan}) {
 
   //Set Personal Data to Input Values
   useEffect(() => {
-    fullNameInputEL.current.value = userData?.fullName || '';
-    phoneInputEL.current.value = userData?.phone || '';
-    addressDetailsInputEL.current.value = userData?.addressDetails || '';
-    secondAddressInputEL.current.value = userData?.secondAddress || '';
-    notesInputEL.current.value = userData?.notes || '';
-  }, [userData]);
+    fullNameInputEL.current.value = user?.full_name || '';
+    phoneInputEL.current.value = user?.phone || '';
+    addressDetailsInputEL.current.value = user?.address_details || '';
+    secondAddressInputEL.current.value = user?.second_address || '';
+    notesInputEL.current.value = user?.notes || '';
+  }, [user]);
 
   const getProductImgURL = product => `/assets/img/products/${product.id}/main.webp`;
   const getProductPrice = product => formatNumberWithCommas(calculatePrice(product.price, product.discount));
@@ -126,9 +186,9 @@ function Account ({darkMode, lan}) {
     const maxHeight = myInfoListContEL.current.scrollHeight;
     const heightGap = 16;
 
-    if (userData) descriptionContEL.current.style.maxHeight = String(maxHeight + heightGap) + 'px';
+    if (user) descriptionContEL.current.style.maxHeight = String(maxHeight + heightGap) + 'px';
     topBarSliderEL.current.style.left = en ? '0%' : '50%';
-  }, [userData, lan])
+  }, [user, lan])
 
   const updateUserData = async (personalData) => {
     setActivity(true);
@@ -195,13 +255,8 @@ function Account ({darkMode, lan}) {
           accountEL.current.style.setProperty('--stretch-height', String(accountScrollHeight() + accountELheightGap) + 'px');
         }, 550);
         break;
-      case 'signOut_is_clicked':
-        try {
-          const response = await signOut(auth);
-          setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500);
-        } catch (err) {
-          console.error(err);
-        }
+      case 'signout_is_clicked':
+        signoutUser();
         break;
       case 'manage_content_btn_is_clicked':
         navigate('/account/admin');
@@ -212,8 +267,7 @@ function Account ({darkMode, lan}) {
         dispatch({type: action})
         break;
       case 'save_personalDetails_window_button_is_clicked':
-        const { toggle, ...personalData } = editPersonalDetails;
-        updateUserData(personalData);
+        updateProfile();
         break;
       default:
         console.error('Error: Unknown action', action);
@@ -224,10 +278,10 @@ function Account ({darkMode, lan}) {
     const { name, value } = e.currentTarget;
 
     switch (name) {
-      case 'fullName':
+      case 'full_name':
       case 'phone':
-      case 'addressDetails':
-      case 'secondAddress':
+      case 'address_details':
+      case 'second_address':
       case 'notes':
         dispatch({ type: 'add_inputs_values', name, value: value.trim() })
         break;
@@ -251,8 +305,8 @@ function Account ({darkMode, lan}) {
   }
 
   // console.log('user', user?.uid);
-  // console.log('userData', userData);
-  // console.log('reducer', editPersonalDetails);
+  // console.log('user', user);
+  // console.log('reducer', editProfile);
 
   return (
     <>
@@ -271,19 +325,19 @@ function Account ({darkMode, lan}) {
       <Alert alertText={alertText} newAlert={newAlert} />
 
         <section className="account__banner">
-          <button className={`account__banner__manageContent-btn${rolesData?.role === 'admin' || rolesData?.role === 'owner' ? ' show': ''}`} data-action="manage_content_btn_is_clicked" onClick={handleClick} />
+          <button className={`account__banner__manageContent-btn${user?.role === 'admin' || user?.role === 'owner' ? ' show': ''}`} data-action="manage_content_btn_is_clicked" onClick={handleClick} />
           <button className="account__banner__editPersonalDetails-btn" data-action="edit_personal_details_btn_is_clicked" onClick={handleClick} />
           <div className="account__banner__pfp">
             <DisplayImg className="account__banner__pfp__default-img" src={darkMode ? personIcon : personDarkModeIcon} />
-            <DisplayWebImg className="account__banner__pfp__user-img" src={getUserImgURL()} backup={false} refresh={userData} />
+            <DisplayWebImg className="account__banner__pfp__user-img" src={getUserImgURL()} backup={false} refresh={user} />
           </div>
         </section>
 
         <section className="account__userName-sec">
-          <h2 className="account__userName-sec__h2">{userData?.fullName || (en ? 'Loading..' : '..جاري التحميل')}</h2>
+          <h2 className="account__userName-sec__h2">{user?.full_name || (en ? 'Loading..' : '..جاري التحميل')}</h2>
         </section>
 
-        <div className={`account__editPersonalDetails-window${editPersonalDetails.toggle}`} data-action="personalDetails_window_background_is_clicked" onClick={handleClick}>
+        <div className={`account__editPersonalDetails-window${editProfile.toggle}`} data-action="personalDetails_window_background_is_clicked" onClick={handleClick}>
           <div className="account__editPersonalDetails-window__wrapper" data-action="personalDetails_window_wrapper_is_clicked" onClick={e => e.stopPropagation()}>
             <h2 className="account__editPersonalDetails-window__wrapper__title">{en ? 'Edit Personal Details' : 'تعديل المعلومات الشخصيه'}</h2>
             <div className="account__editPersonalDetails-window__wrapper__pfp-wrapper" htmlFor="userPfp">
@@ -291,25 +345,25 @@ function Account ({darkMode, lan}) {
               <DisplayImg className="account__editPersonalDetails-window__wrapper__pfp-wrapper__new-img" src={pfpSrc} />
               <input className="account__editPersonalDetails-window__wrapper__pfp-wrapper__inpt" type="file" id="userPfp" name="userPfp" onChange={handleChange} ref={pfpImgEL} />
             </div>
-            <label className="account__editPersonalDetails-window__wrapper__fullName-lbl" htmlFor="fullName">
+            <label className="account__editPersonalDetails-window__wrapper__fullName-lbl" htmlFor="full_name">
               <DisplayImg className="account__editPersonalDetails-window__wrapper__fullName-lbl__icon" src={darkMode ? personDarkModeIcon : personIcon } loading="lazy" alt="Person Icon"/>
               <span className="account__editPersonalDetails-window__wrapper__fullName-lbl__span">{en ? 'Full Name' : 'الاسم الكامل'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__fullName-lbl__fullName-inpt" id="fullName" name="fullName" onChange={handleChange} ref={fullNameInputEL} />
+              <input className="account__editPersonalDetails-window__wrapper__fullName-lbl__fullName-inpt" id="full_name" name="full_name" onChange={handleChange} ref={fullNameInputEL} />
             </label>
             <label className="account__editPersonalDetails-window__wrapper__phone-lbl" htmlFor="phone">
               <DisplayImg className="account__editPersonalDetails-window__wrapper__phone-lbl__icon" src={darkMode ? callDarkModeIcon : callIcon } loading="lazy" alt="Call Icon"/>
               <span className="account__editPersonalDetails-window__wrapper__phone-lbl__span">{en ? 'Phone': 'رقم الهاتف'}</span>
               <input className="account__editPersonalDetails-window__wrapper__phone-lbl__phone-inpt" id="phone" name="phone" onChange={handleChange} ref={phoneInputEL} />
             </label>
-            <label className="account__editPersonalDetails-window__wrapper__addressDetails-lbl" htmlFor="addressDetails">
+            <label className="account__editPersonalDetails-window__wrapper__addressDetails-lbl" htmlFor="address_details">
               <DisplayImg className="account__editPersonalDetails-window__wrapper__addressDetails-lbl__icon" src={darkMode ? locationDarkModeIcon : locationIcon } loading="lazy" alt="Adress Details Icon"/>
               <span className="account__editPersonalDetails-window__wrapper__addressDetails-lbl__span">{en ? 'Address Details' : 'تفاصيل العنوان'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__addressDetails-lbl__addressDetails-inpt" id="addressDetails" name="addressDetails" onChange={handleChange} ref={addressDetailsInputEL} />
+              <input className="account__editPersonalDetails-window__wrapper__addressDetails-lbl__addressDetails-inpt" id="address_details" name="address_details" onChange={handleChange} ref={addressDetailsInputEL} />
             </label>
-            <label className="account__editPersonalDetails-window__wrapper__secondAddress-lbl" htmlFor="secondAddress">
+            <label className="account__editPersonalDetails-window__wrapper__secondAddress-lbl" htmlFor="second_address">
               <DisplayImg className="account__editPersonalDetails-window__wrapper__secondAddress-lbl__icon" src={darkMode ? locationDarkModeIcon : locationIcon } loading="lazy" alt="Second Address Icon"/>
               <span className="account__editPersonalDetails-window__wrapper__secondAddress-lbl__span">{en ? 'Second Address' : 'العنوان الثاني'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__secondAddress-lbl__secondAddress-inpt" id="secondAddress" name="secondAddress" onChange={handleChange} ref={secondAddressInputEL} />
+              <input className="account__editPersonalDetails-window__wrapper__secondAddress-lbl__secondAddress-inpt" id="second_address" name="second_address" onChange={handleChange} ref={secondAddressInputEL} />
             </label>
             <label className="account__editPersonalDetails-window__wrapper__notes-lbl" htmlFor="notes">
               <DisplayImg className="account__editPersonalDetails-window__wrapper__notes-lbl__icon" src={darkMode ? notesDarkModeIcon : notesIcon } loading="lazy" alt="Notes Icon"/>
@@ -333,31 +387,31 @@ function Account ({darkMode, lan}) {
                 <li className="account__userData__description-cont__myInfo-cont__list__item">
                   <DisplayImg className="account__userData__description-cont__myInfo-cont__list__item__img" src={darkMode ? callDarkModeIcon : callIcon} alt="Phone Icon" />
                   <span className="account__userData__description-cont__myInfo-cont__list__item__title">{en ? 'Mobile Phone' : 'رقم الهاتف'}</span> 
-                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{formatPhoneNumber(userData?.phone) || (en ? 'Loading..' : '..جاري التحميل')}</span> 
+                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{formatPhoneNumber(user?.phone) || (en ? 'Loading..' : '..جاري التحميل')}</span> 
                 </li>
                 <li className="account__userData__description-cont__myInfo-cont__list__item">
                   <DisplayImg className="account__userData__description-cont__myInfo-cont__list__item__img" src={darkMode ? mailDarkModeIcon : mailIcon} loading="lazy" alt="Email Icon" />
                   <span className="account__userData__description-cont__myInfo-cont__list__item__title">{en ? 'Email Address' : 'عنوان البريد'}</span> 
-                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{userData?.email || (en ? 'Loading..' : '..جاري التحميل')}</span> 
+                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{user?.email || (en ? 'Loading..' : '..جاري التحميل')}</span> 
                 </li>
-                {!userData?.addressDetails || <li className="account__userData__description-cont__myInfo-cont__list__item">
+                {!user?.address_details || <li className="account__userData__description-cont__myInfo-cont__list__item">
                   <DisplayImg className="account__userData__description-cont__myInfo-cont__list__item__img" src={darkMode ? locationDarkModeIcon : locationIcon} loading="lazy" alt="Address Details Icon" />
                   <span className="account__userData__description-cont__myInfo-cont__list__item__title">{en ? 'Address Details' : 'تفاصيل العنوان'}</span> 
-                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{userData?.addressDetails || (en ? 'Loading..' : '..جاري التحميل')}</span> 
+                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{user?.address_details || (en ? 'Loading..' : '..جاري التحميل')}</span> 
                 </li>}
-                {!userData?.secondAddress || <li className="account__userData__description-cont__myInfo-cont__list__item">
+                {!user?.second_address || <li className="account__userData__description-cont__myInfo-cont__list__item">
                   <DisplayImg className="account__userData__description-cont__myInfo-cont__list__item__img" src={darkMode ? locationDarkModeIcon : locationIcon} loading="lazy" alt="Second Address Icon" />
                   <span className="account__userData__description-cont__myInfo-cont__list__item__title">{en ? 'Second Address' : 'العنوان الثاني'}</span> 
-                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{userData?.secondAddress || (en ? 'Loading..' : '..جاري التحميل')}</span> 
+                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{user?.second_address || (en ? 'Loading..' : '..جاري التحميل')}</span> 
                 </li>}
-                {!userData?.notes || <li className="account__userData__description-cont__myInfo-cont__list__item">
+                {!user?.notes || <li className="account__userData__description-cont__myInfo-cont__list__item">
                   <DisplayImg className="account__userData__description-cont__myInfo-cont__list__item__img" src={darkMode ? notesDarkModeIcon : notesIcon} loading="lazy" alt="Notes Icon" />
                   <span className="account__userData__description-cont__myInfo-cont__list__item__title">{en ? 'Notes' : 'ملاحظات'}</span> 
-                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{userData?.notes || (en ? 'Loading..' : '..جاري التحميل')}</span> 
+                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{user?.notes || (en ? 'Loading..' : '..جاري التحميل')}</span> 
                 </li>}
                 {/* <li className="account__userData__description-cont__myInfo-cont__list__item">
                   <span className="account__userData__description-cont__myInfo-cont__list__item__title">ID</span> 
-                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{userData?.userId}</span> 
+                  <span className="account__userData__description-cont__myInfo-cont__list__item__description">{user?.userId}</span> 
                 </li> */}
               </ul>
             </li>
@@ -410,7 +464,7 @@ function Account ({darkMode, lan}) {
             </li>
           </ul>
         </section>
-        <button className="account__signOut-btn" data-action="signOut_is_clicked" onClick={handleClick}>{en ? 'Sign Out' : 'تسجيل الخروج'}</button>
+        <button className="account__signOut-btn" data-action="signout_is_clicked" onClick={handleClick}>{en ? 'Sign Out' : 'تسجيل الخروج'}</button>
       </div>
     </>
   )

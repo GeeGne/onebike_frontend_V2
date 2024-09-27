@@ -44,9 +44,9 @@ class Redirector {
     } 
     if (
       user 
-      && rolesData?.role !== 'admin' 
-      && rolesData?.role !== 'owner' 
-      && (rolesData?.role === 'user' || !rolesData?.role)
+      && user?.role !== 'admin' 
+      && user?.role !== 'owner' 
+      && (user?.role === 'user' || !user?.role)
       && (this.pathname === '/account/admin' || this.pathname === '/account/admin/')
     ) {
       this.navigate('/account');
