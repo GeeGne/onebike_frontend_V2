@@ -50,8 +50,6 @@ function Account ({darkMode, lan}) {
   const pageKeywords = "ONEBIKE, account, manage account, orders, preferences, bicycle, bicycle parts, Syria";
   const en = lan === 'en';
 
-  // const { user, user, rolesData, setRefreshUserData } = useDataStore();
-  // const { rolesData, setRefreshUserData } = useDataStore();
   const { data: user, refetch: signoutUser } = useQuery('user', async () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/signout`, {
@@ -88,6 +86,18 @@ function Account ({darkMode, lan}) {
       const updatedUser = await response.json();
       if (!updatedUser) ('unknown error has accured');
 
+
+      // Upload new profile if there's
+      const newProfile = imgFile.current;
+      if (newProfile) {
+        const body = new FormData();
+        body.append('file', newProfile);
+        await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/uploads/profiles/${user.id}`, {
+          method: 'POST',
+          body
+        })
+      }
+
       dispatch({ type: 'user_data_is_updated' });
       setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')  
       return updatedUser;
@@ -113,8 +123,6 @@ function Account ({darkMode, lan}) {
   useEffect(() => {
     dispatch({type: 'user_data_has_changed', ...user});
   }, [user]);
-  console.log('editProfile: ', editProfile);
-
 
   const [ pfpSrc, setPfpSrc] = useState("");
   const [ newAlert, setNewAlert ] = useState(0);
@@ -153,9 +161,9 @@ function Account ({darkMode, lan}) {
     notesInputEL.current.value = user?.notes || '';
   }, [user]);
 
+  const getProfileImgURL = () => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/profiles/${user?.id}.webp`;
   const getProductImgURL = product => `/assets/img/products/${product.id}/main.webp`;
   const getProductPrice = product => formatNumberWithCommas(calculatePrice(product.price, product.discount));
-  const getUserImgURL = () => `/assets/img/userpfp/${user?.uid}/main.webp`;
   const isOrdersEmpty = ordersData.length === 0;
   const handleOrderStatus = (orderStatus) => {
     switch (orderStatus) {
@@ -198,7 +206,7 @@ function Account ({darkMode, lan}) {
       await updateDoc(productRef, personalData);
 
       if (imgFile.current) {
-        const storageRef = ref(storage, getUserImgURL());
+        const storageRef = ref(storage, getProfileImgURL());
         await uploadBytes(storageRef, imgFile.current);
       }
   
@@ -261,12 +269,12 @@ function Account ({darkMode, lan}) {
       case 'manage_content_btn_is_clicked':
         navigate('/account/admin');
         break;
-      case 'personalDetails_window_background_is_clicked':
-      case 'cancel_personalDetails_window_button_is_clicked':
-      case 'edit_personal_details_btn_is_clicked':
+      case 'profile_window_background_is_clicked':
+      case 'cancel_profile_window_button_is_clicked':
+      case 'edit_profile_btn_is_clicked':
         dispatch({type: action})
         break;
-      case 'save_personalDetails_window_button_is_clicked':
+      case 'save_profile_window_button_is_clicked':
         updateProfile();
         break;
       default:
@@ -326,10 +334,11 @@ function Account ({darkMode, lan}) {
 
         <section className="account__banner">
           <button className={`account__banner__manageContent-btn${user?.role === 'admin' || user?.role === 'owner' ? ' show': ''}`} data-action="manage_content_btn_is_clicked" onClick={handleClick} />
-          <button className="account__banner__editPersonalDetails-btn" data-action="edit_personal_details_btn_is_clicked" onClick={handleClick} />
+          <button className="account__banner__editPersonalDetails-btn" data-action="edit_profile_btn_is_clicked" onClick={handleClick} />
           <div className="account__banner__pfp">
             <DisplayImg className="account__banner__pfp__default-img" src={darkMode ? personIcon : personDarkModeIcon} />
-            <DisplayWebImg className="account__banner__pfp__user-img" src={getUserImgURL()} backup={false} refresh={user} />
+            {/* <DisplayWebImg className="account__banner__pfp__user-img" src={getProfileImgURL()} backup={false} refresh={user} /> */}
+            <DisplayImg className="account__banner__pfp__user-img" src={getProfileImgURL()} />
           </div>
         </section>
 
@@ -337,41 +346,41 @@ function Account ({darkMode, lan}) {
           <h2 className="account__userName-sec__h2">{user?.full_name || (en ? 'Loading..' : '..جاري التحميل')}</h2>
         </section>
 
-        <div className={`account__editPersonalDetails-window${editProfile.toggle}`} data-action="personalDetails_window_background_is_clicked" onClick={handleClick}>
-          <div className="account__editPersonalDetails-window__wrapper" data-action="personalDetails_window_wrapper_is_clicked" onClick={e => e.stopPropagation()}>
-            <h2 className="account__editPersonalDetails-window__wrapper__title">{en ? 'Edit Personal Details' : 'تعديل المعلومات الشخصيه'}</h2>
-            <div className="account__editPersonalDetails-window__wrapper__pfp-wrapper" htmlFor="userPfp">
-              <DisplayWebImg className="account__editPersonalDetails-window__wrapper__pfp-wrapper__current-img" src={getUserImgURL()} backup={false} />
-              <DisplayImg className="account__editPersonalDetails-window__wrapper__pfp-wrapper__new-img" src={pfpSrc} />
-              <input className="account__editPersonalDetails-window__wrapper__pfp-wrapper__inpt" type="file" id="userPfp" name="userPfp" onChange={handleChange} ref={pfpImgEL} />
+        <div className={`account__profile-window${editProfile.toggle}`} data-action="profile_window_background_is_clicked" onClick={handleClick}>
+          <div className="account__profile-window__wrapper" data-action="personalDetails_window_wrapper_is_clicked" onClick={e => e.stopPropagation()}>
+            <h2 className="account__profile-window__wrapper__title">{en ? 'Edit Personal Details' : 'تعديل المعلومات الشخصيه'}</h2>
+            <div className="account__profile-window__wrapper__pfp-wrapper" htmlFor="userPfp">
+              <DisplayWebImg className="account__profile-window__wrapper__pfp-wrapper__current-img" src={getProfileImgURL()} backup={false} />
+              <DisplayImg className="account__profile-window__wrapper__pfp-wrapper__new-img" src={pfpSrc} />
+              <input className="account__profile-window__wrapper__pfp-wrapper__inpt" type="file" id="userPfp" name="userPfp" onChange={handleChange} ref={pfpImgEL} />
             </div>
-            <label className="account__editPersonalDetails-window__wrapper__fullName-lbl" htmlFor="full_name">
-              <DisplayImg className="account__editPersonalDetails-window__wrapper__fullName-lbl__icon" src={darkMode ? personDarkModeIcon : personIcon } loading="lazy" alt="Person Icon"/>
-              <span className="account__editPersonalDetails-window__wrapper__fullName-lbl__span">{en ? 'Full Name' : 'الاسم الكامل'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__fullName-lbl__fullName-inpt" id="full_name" name="full_name" onChange={handleChange} ref={fullNameInputEL} />
+            <label className="account__profile-window__wrapper__fullName-lbl" htmlFor="full_name">
+              <DisplayImg className="account__profile-window__wrapper__fullName-lbl__icon" src={darkMode ? personDarkModeIcon : personIcon } loading="lazy" alt="Person Icon"/>
+              <span className="account__profile-window__wrapper__fullName-lbl__span">{en ? 'Full Name' : 'الاسم الكامل'}</span>
+              <input className="account__profile-window__wrapper__fullName-lbl__fullName-inpt" id="full_name" name="full_name" onChange={handleChange} ref={fullNameInputEL} />
             </label>
-            <label className="account__editPersonalDetails-window__wrapper__phone-lbl" htmlFor="phone">
-              <DisplayImg className="account__editPersonalDetails-window__wrapper__phone-lbl__icon" src={darkMode ? callDarkModeIcon : callIcon } loading="lazy" alt="Call Icon"/>
-              <span className="account__editPersonalDetails-window__wrapper__phone-lbl__span">{en ? 'Phone': 'رقم الهاتف'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__phone-lbl__phone-inpt" id="phone" name="phone" onChange={handleChange} ref={phoneInputEL} />
+            <label className="account__profile-window__wrapper__phone-lbl" htmlFor="phone">
+              <DisplayImg className="account__profile-window__wrapper__phone-lbl__icon" src={darkMode ? callDarkModeIcon : callIcon } loading="lazy" alt="Call Icon"/>
+              <span className="account__profile-window__wrapper__phone-lbl__span">{en ? 'Phone': 'رقم الهاتف'}</span>
+              <input className="account__profile-window__wrapper__phone-lbl__phone-inpt" id="phone" name="phone" onChange={handleChange} ref={phoneInputEL} />
             </label>
-            <label className="account__editPersonalDetails-window__wrapper__addressDetails-lbl" htmlFor="address_details">
-              <DisplayImg className="account__editPersonalDetails-window__wrapper__addressDetails-lbl__icon" src={darkMode ? locationDarkModeIcon : locationIcon } loading="lazy" alt="Adress Details Icon"/>
-              <span className="account__editPersonalDetails-window__wrapper__addressDetails-lbl__span">{en ? 'Address Details' : 'تفاصيل العنوان'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__addressDetails-lbl__addressDetails-inpt" id="address_details" name="address_details" onChange={handleChange} ref={addressDetailsInputEL} />
+            <label className="account__profile-window__wrapper__addressDetails-lbl" htmlFor="address_details">
+              <DisplayImg className="account__profile-window__wrapper__addressDetails-lbl__icon" src={darkMode ? locationDarkModeIcon : locationIcon } loading="lazy" alt="Adress Details Icon"/>
+              <span className="account__profile-window__wrapper__addressDetails-lbl__span">{en ? 'Address Details' : 'تفاصيل العنوان'}</span>
+              <input className="account__profile-window__wrapper__addressDetails-lbl__addressDetails-inpt" id="address_details" name="address_details" onChange={handleChange} ref={addressDetailsInputEL} />
             </label>
-            <label className="account__editPersonalDetails-window__wrapper__secondAddress-lbl" htmlFor="second_address">
-              <DisplayImg className="account__editPersonalDetails-window__wrapper__secondAddress-lbl__icon" src={darkMode ? locationDarkModeIcon : locationIcon } loading="lazy" alt="Second Address Icon"/>
-              <span className="account__editPersonalDetails-window__wrapper__secondAddress-lbl__span">{en ? 'Second Address' : 'العنوان الثاني'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__secondAddress-lbl__secondAddress-inpt" id="second_address" name="second_address" onChange={handleChange} ref={secondAddressInputEL} />
+            <label className="account__profile-window__wrapper__secondAddress-lbl" htmlFor="second_address">
+              <DisplayImg className="account__profile-window__wrapper__secondAddress-lbl__icon" src={darkMode ? locationDarkModeIcon : locationIcon } loading="lazy" alt="Second Address Icon"/>
+              <span className="account__profile-window__wrapper__secondAddress-lbl__span">{en ? 'Second Address' : 'العنوان الثاني'}</span>
+              <input className="account__profile-window__wrapper__secondAddress-lbl__secondAddress-inpt" id="second_address" name="second_address" onChange={handleChange} ref={secondAddressInputEL} />
             </label>
-            <label className="account__editPersonalDetails-window__wrapper__notes-lbl" htmlFor="notes">
-              <DisplayImg className="account__editPersonalDetails-window__wrapper__notes-lbl__icon" src={darkMode ? notesDarkModeIcon : notesIcon } loading="lazy" alt="Notes Icon"/>
-              <span className="account__editPersonalDetails-window__wrapper__notes-lbl__span">{en ? 'Notes' : 'ملاحظات'}</span>
-              <input className="account__editPersonalDetails-window__wrapper__notes-lbl__notes-inpt" id="notes" name="notes" onChange={handleChange} ref={notesInputEL} />
+            <label className="account__profile-window__wrapper__notes-lbl" htmlFor="notes">
+              <DisplayImg className="account__profile-window__wrapper__notes-lbl__icon" src={darkMode ? notesDarkModeIcon : notesIcon } loading="lazy" alt="Notes Icon"/>
+              <span className="account__profile-window__wrapper__notes-lbl__span">{en ? 'Notes' : 'ملاحظات'}</span>
+              <input className="account__profile-window__wrapper__notes-lbl__notes-inpt" id="notes" name="notes" onChange={handleChange} ref={notesInputEL} />
             </label>
-            <button className="account__editPersonalDetails-window__wrapper__cancel-btn" data-action="cancel_personalDetails_window_button_is_clicked" onClick={handleClick}>{en ? 'Cancel' : 'الغاء'}</button>
-            <button className="account__editPersonalDetails-window__wrapper__save-btn" data-action="save_personalDetails_window_button_is_clicked" onClick={handleClick}>{renderLoadingState(en ? 'Save' : 'حفظ')}</button>          
+            <button className="account__profile-window__wrapper__cancel-btn" data-action="cancel_profile_window_button_is_clicked" onClick={handleClick}>{en ? 'Cancel' : 'الغاء'}</button>
+            <button className="account__profile-window__wrapper__save-btn" data-action="save_profile_window_button_is_clicked" onClick={handleClick}>{renderLoadingState(en ? 'Save' : 'حفظ')}</button>          
           </div>
         </div>
 
