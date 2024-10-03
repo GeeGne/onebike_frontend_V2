@@ -1,44 +1,33 @@
 // HOOKS
 import React, { useEffect, useState } from 'react';
+import { useQuery } from 'react-query';
 
 // STORE
 import { useDataStore, useCartStore, useWishlistStore } from '/src/store/store';
 
-// FIREBASE
-import {db} from '/src/firebase/fireStore';
-import {getDoc, doc, collection, getDocs} from 'firebase/firestore';
-
-
 function useFetchProductsData () {
   const { filterInvalidWishlistProducts } = useWishlistStore();
   const { filterInvalidCartProducts } = useCartStore();
-  const { setProducts, refreshProducts } = useDataStore();
 
-  useEffect(() => {
-    const fetchProductsData = async () => {
-      try {
-        const productsCollection = collection(db, 'products');
-        const productsSnapshot = await getDocs(productsCollection);
-
-        if (!productsSnapshot.empty) {
-          const productsData = productsSnapshot.docs.map(doc => (
-            {...doc.data()}
-          ))
-          setProducts(productsData);
-
-          filterInvalidCartProducts(productsData);
-          filterInvalidWishlistProducts(productsData);
-        } else {
-          setProducts([]);
-          throw new Error("No Products to be found");
-        }   
-      } catch (err) {
-        console.error(err);
+  const products = useQuery('products', async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/products`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
       }
-    }
 
-    fetchProductsData();
-  }, [refreshProducts]);
+      const { products } = await response.json();
+
+      // filterInvalidCartProducts(productsData);
+      // filterInvalidWishlistProducts(productsData);
+
+      return products;
+    } catch (err) {
+      console.error('Error while fetching products: ', err.message);
+      return false;
+    }
+  });
 }
 
 export default useFetchProductsData;

@@ -1,5 +1,6 @@
 // HOOKS
 import React, {useEffect, useState, useRef } from 'react';
+import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 
 // SCSS
@@ -14,14 +15,6 @@ import DisplayWebImg from '/src/components/DisplayWebImg';
 import Alert from '/src/components/Alert';
 import ProgressActivity from '/src/components/ProgressActivity';
 
-// STORE
-import { useDataStore } from '/src/store/store';
-
-// FIREBASE
-import { db } from '/src/firebase/fireStore';
-import { getDoc, doc, collection, getDocs, setDoc, updateDoc } from 'firebase/firestore';
-import { storage } from '/src/firebase/storage';
-
 // JSON
 import menu from '/src/data/menu.json';
 
@@ -30,7 +23,8 @@ import Redirector from '/src/utils/Redirector';
 
 function Admin ({darkMode, lan}) {
 
-  const { user, userData, products, setRefreshProducts, rolesData } = useDataStore();
+  // const { userData, products, setRefreshProducts } = useDataStore();
+  const { data: user } = useQuery('user');
   const [ newAlert, setNewAlert ] = useState(0);
   const [ alertText, setAlertText ] = useState(null);
   const [ tab, setTab ] = useState('content-management');
@@ -65,8 +59,8 @@ function Admin ({darkMode, lan}) {
   }
 
   useEffect(() => {
-    redirector.admin(user, rolesData);
-  }, [rolesData]);
+    redirector.admin(user);
+  }, [user]);
 
   const handleClick = e => {
     const { action } = e.currentTarget.dataset;

@@ -1,6 +1,7 @@
 // HOOKS
 import React, {useEffect, useState, useRef, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from 'react-query';
 
 // SCSS
 import '/src/styles/components/pages/admin/ContentManagementTable.scss';
@@ -8,8 +9,13 @@ import '/src/styles/components/pages/admin/ContentManagementTable.scss';
 // COMPONENTS
 import AddProductWindow from '/src/components/pages/admin/AddProductWindow';
 import DisplayWebImg from '/src/components/DisplayWebImg';
+import DisplayImg from '/src/components/DisplayImg';
 import Alert from '/src/components/Alert';
 import ProgressActivity from '/src/components/ProgressActivity';
+
+// HOOKS
+import useFetchUserData from '/src/hooks/useFetchUserData';
+import useFetchProductsData from '/src/hooks/useFetchProductsData';
 
 // STORE
 import { useDataStore } from '/src/store/store';
@@ -33,7 +39,40 @@ import deleteWindowReducer from '/src/reducers/deleteWindowReducer';
 
 function ContentManagementTable ({darkMode, lan}) {
 
-  const { user, userData, products, setRefreshProducts } = useDataStore();
+  const { data: products } = useQuery(['products'], async () => {
+    try {
+      // fetch all products
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/products`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error (error.message);
+      }
+      const result = await response.json();
+
+      return result.products;
+    } catch (err) {
+      console.error('Error while fetching products: ', err.message);
+      return products;
+    }
+  });
+  const { data: user } = useQuery(['user'], async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/me`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error ('no user to auth');
+
+      const user = await response.json();
+      return user;
+    } catch (err) {
+      console.info('note: ', err);
+      return null;
+    }
+  });
+
+  console.log('products2', products);
+  // const { user, userData, products, setRefreshProducts } = useDataStore();
   const [ typeItmArray, setTypeItmArray ] = useState([]);
   const [ deleteWindow, dispatch ] = useReducer(deleteWindowReducer, {
     toggle: '',
@@ -115,7 +154,7 @@ function ContentManagementTable ({darkMode, lan}) {
         return '';
     }
   }
-  const getProductImgURL = id => `/assets/img/products/${id}/main.webp`;
+  const getProductImgURL = id => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/products/${id}/front_default.webp`;
 
   const clearInputsAndCloseTab = index => {
     const findElement = ref => ref.filter(el => Number(el.dataset.index) === Number(index))[0];
@@ -250,8 +289,8 @@ function ContentManagementTable ({darkMode, lan}) {
 
         const productData = {
           title: {
-            en: findElement(titleEnInptELRefs.current).value || getProduct().title.en,
-            ar: findElement(titleArInptELRefs.current).value || getProduct().title.ar,
+            en: findElement(titleEnInptELRefs.current).value || getProduct().title_en,
+            ar: findElement(titleArInptELRefs.current).value || getProduct().title_ar,
           },
           category: findElement(categoryInptELRefs.current).dataset.key || getProduct().category,
           type: findElement(typeInptELRefs.current).dataset.key || getProduct().type,
@@ -343,7 +382,7 @@ function ContentManagementTable ({darkMode, lan}) {
       <div className={`cm__delete-window${deleteWindow.toggle}`} data-action="window_background_is_clicked" onClick={handleClick}>
         <div className="cm__delete-window__wrapper" data-action="window_wrapper_is_clicked" onClick={e => e.stopPropagation()}>
           <h2 className="cm__delete-window__wrapper__title">{en ? 'User confirmation Needed' : 'مطلوب تأكيد المستخدم'}</h2>
-          <span className="cm__delete-window__wrapper__description">{`${en ? 'Delete' : 'مسح'} "${deleteWindow.productId && getProduct(deleteWindow.productId).title[lan]}" ${en ? '?' : '؟'}`}</span>
+          <span className="cm__delete-window__wrapper__description">{`${en ? 'Delete' : 'مسح'} "${deleteWindow.productId && getProduct(deleteWindow.productId)[en ? 'title_en' : 'title_ar']}" ${en ? '?' : '؟'}`}</span>
           <button className="cm__delete-window__wrapper__cancel-btn" data-action="cancel_window_button_is_clicked" onClick={handleClick}>{en ? 'Cancel' : 'الغاء'}</button>
           <button className="cm__delete-window__wrapper__delete-btn" data-product-id={deleteWindow.productId} data-index={deleteWindow.index} data-action="delete_window_button_is_clicked" onClick={handleClick}>{en ? 'Delete' : 'مسح'}</button>          
         </div>
@@ -356,13 +395,14 @@ function ContentManagementTable ({darkMode, lan}) {
       </div>
       <ul className="cm__lst">
         <Alert alertText={alertText} newAlert={newAlert} />
-        {products.map((item, i) => 
+        {products?.map((item, i) => 
         <li className="cm__lst__itm" key={i} data-index={i} ref={el => itemELRefs.current[i] = el}>
           <div className="cm__lst__itm__info-cont" data-index={i} ref={el => itemInfoELRefs.current[i] = el}>
             <div className="cm__lst__itm__info-cont__name-cont">
               <div className={`cm__lst__itm__info-cont__name-cont__state${getColorForState(item.state)}`} />
-              <DisplayWebImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item.title[lan]} loading="lazy" refresh={products} />
-              <span className="cm__lst__itm__info-cont__name-cont__title">{item.title[lan]}</span>
+              {/* <DisplayWebImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" refresh={products} /> */}
+              <DisplayImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" />
+              <span className="cm__lst__itm__info-cont__name-cont__title">{en ? item.title_en : item.title_ar}</span>
             </div>
             <div className="cm__lst__itm__info-cont__id-cont">
               <span className="cm__lst__itm__info-cont__id-cont__id">{item.id}</span>
@@ -394,8 +434,8 @@ function ContentManagementTable ({darkMode, lan}) {
             </div>
             <div className="cm__lst__itm__edit-cont__nameTitle-cont">
               <span className="cm__lst__itm__edit-cont__nameTitle-cont__name-spn">{en ? 'Name' : 'الاسم'}</span>
-              <span className="cm__lst__itm__edit-cont__nameTitle-cont__enVal-spn">{item.title.en}</span>{' / '}
-              <span className="cm__lst__itm__edit-cont__nameTitle-cont__arVal-spn">{item.title.ar}</span>
+              <span className="cm__lst__itm__edit-cont__nameTitle-cont__enVal-spn">{item.title_en}</span>{' / '}
+              <span className="cm__lst__itm__edit-cont__nameTitle-cont__arVal-spn">{item.title_ar}</span>
             </div>
             <input className="cm__lst__itm__edit-cont__nameEn-inpt" name="titleEn" data-index={i} placeholder={en ? "name in english" : "الاسم بلانجليزي"} ref={el => titleEnInptELRefs.current[i] = el} />
             <input className="cm__lst__itm__edit-cont__nameAr-inpt" name="titleAr" data-index={i} placeholder={en ? "name in arabic" : "الاسم بلعربي"} ref={el => titleArInptELRefs.current[i] = el} />

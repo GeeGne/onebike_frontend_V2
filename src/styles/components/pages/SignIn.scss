@@ -19,10 +19,7 @@
     @include w.breakpoint-up (xlarge) {padding-block: 15vw;}
 
 
-    &__password  {
-      & input {font-weight: bold}
-    }
-
+    &__password  { & input { font-weight: bold } }
     &__password,
     &__email {
       position: relative;

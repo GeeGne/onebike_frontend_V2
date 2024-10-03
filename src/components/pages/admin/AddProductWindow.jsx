@@ -1,5 +1,6 @@
 // HOOKS
 import React, {useEffect, useRef, useState} from 'react';
+import { useQuery, useQueryClient } from 'react-query';
 
 // SCSS
 import '/src/styles/components/pages/admin/AddProductWindow.scss';
@@ -30,8 +31,75 @@ import { nanoid } from 'nanoid';
 import emptyImgURL from '/assets/img/empty/empty.webp';
 
 function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
+  const queryClient = useQueryClient();
+  const [ productData, setProductData ] = useState(false);
+  const { data: products, refetch: fetchProducts } = useQuery(['products'], async () => {
+    try {
+      // fetch all products
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/products`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error (error.message);
+      }
+      const result = await response.json();
 
-  const { user, userData, products, setRefreshProducts } = useDataStore();
+      return result.products;
+    } catch (err) {
+      console.error('Error while fetching products: ', err.message);
+      return products;
+    }
+  });
+  const { refetch: addNewProductData} = useQuery(['products', productData], async () => {
+    
+    setActivity(true);
+
+    try {
+      // add new product to db
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/products`, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        credentials: 'include',
+        body: JSON.stringify(productData)
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error (error.message);
+      }
+      const result = await response.json();
+
+      // upload new product image to storage
+      const productImage = imgFile.current || await fetchEmptyImgAsBlob(emptyImgURL);
+      const body = new FormData();
+      body.append('file', productImage);
+      const response1 = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/uploads/products/${result.productId}/${productData.face}/${productData.color}`, {
+        method: 'POST',
+        credentials: 'include',
+        body
+      });
+      if (!response1.ok) {
+        const error = await response1.json();
+        throw new Error (error.message);
+
+      }
+
+      fetchProducts();
+      clearInputs();
+      toggleData(' hide');
+      setAlertText(en ? 'Success! new Product is added to the cloud' : 'تم اضافه منتج جديد  بنجاج!')
+      return updatedProducts;
+
+    } catch (err) {
+      console.error('Error while creating new product: ', err.message);
+      setAlertText(en ? 'Error adding new product' : 'حصل خطأ في اضافه المنتج')
+      return products;
+
+    } finally {
+      setNewAlert(Math.random());
+      setActivity(false);
+    }
+  }, { enabled: productData });
+
+  // const { user, userData, setRefreshProducts } = useDataStore();
   const [ productSrc, setProductSrc ] = useState("");
   const [ typeItmKey, setTypeItmKey ] = useState("");
   const [ newAlert, setNewAlert ] = useState(0);
@@ -87,8 +155,6 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
     }
   }
 
-  const getProductImgURL = product => `/assets/img/products/${product.id}/main.webp`;
-
   const clearInputs = () => {
     titleEnInptEL.current.value = '';
     titleArInptEL.current.value = '';
@@ -112,31 +178,6 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
       console.error('Error: fetching image: ', error);
     }
   }
-
-  const addNewProductData = async (productId, productData) => {
-    setActivity(true);
-
-    try {
-      const productRef = doc(db, "products", productData.id);
-      await setDoc(productRef, productData);
-
-      if (!imgFile.current) imgFile.current = await fetchEmptyImgAsBlob(emptyImgURL);
-      const storageRef = ref(storage, getProductImgURL(productData));
-      await uploadBytes(storageRef, imgFile.current);
-  
-      clearInputs();
-      toggleData(' hide');
-      setRefreshProducts(Math.random());
-      setAlertText(en ? 'Success! new Product is added to the cloud' : 'تم اضافه منتج جديد  بنجاج!')
-    } catch(err) {
-      console.error('Error updating product: ', err);
-      setAlertText(en ? 'Error adding new product' : 'حصل خطأ في اضافه المنتج')
-    }  
-
-    setNewAlert(Math.random());
-    setActivity(false);
-  }
-  
 
   const handleClick = e => {
     const { action, key, productId } = e.currentTarget.dataset;
@@ -166,14 +207,12 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
         break;
       case 'add_button_is_clicked':
         const productData = {
-          id: nanoid(12),
-          title: {
-            en: titleEnInptEL.current.value || 'No Title exist for this product',
-            ar: titleArInptEL.current.value || 'لايوجد اسم لهذا المنتج',
-          },
+          title_en: titleEnInptEL.current.value || 'No Title exist for this product',
+          title_ar: titleArInptEL.current.value || 'لايوجد اسم لهذا المنتج',
           category: categoryInptEL.current.dataset.key || '--',
           type: typeInptEL.current.dataset.key || '--',
-          color: 'black',
+          color: 'default',
+          face: 'front',
           state: itemStateInptEL.current.dataset.key || 'hidden',
           price: Number(priceInptEL.current.value) || 0,
           discount: discountInptEL.current.value.includes('%') 
@@ -183,8 +222,7 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
             ? ''
             : brandInptEL.current.dataset.key || '',
         }
-        // console.log(productData);
-        addNewProductData(productId, productData);
+        setProductData(productData);
         break;
       default:
         console.error('Error: unknown action: ', action);
@@ -284,8 +322,8 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
         <div className="productWindow__edit-cont__stateBrandTitle-cont">
           <span className="productWindow__edit-cont__nameTitle-cont__stateBrand-spn">{en ? 'State & Brand' : 'الحاله & الماركه'}</span>
         </div>
-        <input className="productWindow__edit-cont__nameEn-inpt" name="titleEn" placeholder={en ? "name in english" : "الاسم بلانجليزي"} ref={titleEnInptEL} />
-        <input className="productWindow__edit-cont__nameAr-inpt" name="titleAr" placeholder={en ? "name in arabic" : "الاسم بلعربي"} ref={titleArInptEL} />
+        <input className="productWindow__edit-cont__nameEn-inpt" name="title_en" placeholder={en ? "name in english" : "الاسم بلانجليزي"} ref={titleEnInptEL} />
+        <input className="productWindow__edit-cont__nameAr-inpt" name="title_ar" placeholder={en ? "name in arabic" : "الاسم بلعربي"} ref={titleArInptEL} />
         <input className="productWindow__edit-cont__price-inpt" name="price" placeholder={en ? "price" : "السعر"} ref={priceInptEL} />
         <input className="productWindow__edit-cont__discount-inpt" name="discount" placeholder={en ? "discount" : "التخفيض"} ref={discountInptEL} />
         <div className="productWindow__edit-cont__itemState-cont" ref={itemStateContEL}>

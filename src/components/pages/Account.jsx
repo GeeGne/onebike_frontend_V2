@@ -198,30 +198,6 @@ function Account ({darkMode, lan}) {
     topBarSliderEL.current.style.left = en ? '0%' : '50%';
   }, [user, lan])
 
-  const updateUserData = async (personalData) => {
-    setActivity(true);
-
-    try {
-      const productRef = doc(db, "users", user?.uid);
-      await updateDoc(productRef, personalData);
-
-      if (imgFile.current) {
-        const storageRef = ref(storage, getProfileImgURL());
-        await uploadBytes(storageRef, imgFile.current);
-      }
-  
-      dispatch({ type: 'user_data_is_updated' });
-      setRefreshUserData(Math.random());
-      setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')
-    } catch(err) {
-      console.error('Error updating perosnal data: ', err);
-      setAlertText(en ? 'Error updating Persoanl Data' : 'خطأ في تحديث البيانات الشخصية')
-    } finally {
-      setNewAlert(Math.random());
-      setActivity(false);  
-    }
-  }
-
   const handleClick = async e => {
     const {action} = e.currentTarget.dataset;
     const containerWidth =  myInfoContEL.current.scrollWidth

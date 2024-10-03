@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import {Helmet} from 'react-helmet-async';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 // FIREBASE
 import {auth} from "/src/firebase/authSignUp";
@@ -20,11 +20,16 @@ import { useOrderStore, useDataStore } from '/src/store/store.js';
 // SCSS
 import '/src/styles/components/pages/SignIn.scss';
 
+// API
+import signin from '/src/api/users/signin';
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
+
 // UTILS
 import validate from '/src/utils/validate';
 import Redirector from '/src/utils/Redirector';
 
 function SignIn ({darkMode, lan}) {
+
 
   const pageURL = window.location.href;
   const siteName = "ONEBIKE";
@@ -34,36 +39,25 @@ function SignIn ({darkMode, lan}) {
 
   const en = lan === 'en';
   const {href ,pathname} = window.location;
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   
   const {headToCheckouts, setHeadToCheckouts} = useOrderStore();
 
-  const { data: user, refetch: signinUser } = useQuery('user', async () => {
-    const {email, password} = formData;
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/signin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include'
-      })
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error (error.message);
-      }
-
-      const user = await response.json();
-      return user;
-    } catch (err) {
-      console.error('Error: failed to signup: ', err);
-      // setAlertText(handleAuthError(err, en));
-      setAlertText(err.message);
-      setNewAlert(Math.random());
-      return false;
-    } 
-  }, {  enabled: false });
+  const { data: user } = useQuery({
+    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryFn: checkAuthAndGetProfile,
+  });
+  // const { data: user, refetch: signinUser } = useQuery('user', async () => {
+  // }, {  enabled: false });
   console.log('user: ', user);
+
+  const signinMutation = useMutation({
+    mutationFn: signin,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth']})
+    }
+  });
 
   const redirector = new Redirector(navigate, headToCheckouts, setHeadToCheckouts);
   const [processing, setProcessing] = useState(false);
@@ -126,10 +120,10 @@ function SignIn ({darkMode, lan}) {
         return;
       }
 
-      await signinUser();
+      await signinMutation.mutate(formData);
+      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
     } catch (err) {
       console.error(err.message)
-      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
     } finally {
       setProcessing(false);
     }

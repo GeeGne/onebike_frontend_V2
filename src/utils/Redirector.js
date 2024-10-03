@@ -38,7 +38,7 @@ class Redirector {
     } 
   }
 
-  admin (user, rolesData) {
+  admin (user) {
     if (!user && (this.pathname === '/account/admin' || this.pathname === '/account/admin/')) {
       this.navigate('/account/login');
     } 

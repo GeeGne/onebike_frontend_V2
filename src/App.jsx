@@ -58,8 +58,8 @@ function App () {
   const [darkMode, setDarkMode] = useState(false);
   const [lan, setLanguage] = useState('en');
   useFetchAuth(); 
+  useFetchProductsData();
   // useFetchUserData();
-  // useFetchProductsData();
   // useFetchRolesData();
   // useFetchHomePageBannersData();
   // useFetchWebsiteDetailsData();
