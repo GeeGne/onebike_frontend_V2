@@ -1,8 +1,8 @@
 // HOOKS
-import React, {useState, useRef, useEffect, useReducer} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {Helmet} from 'react-helmet-async';
-import { useQuery } from 'react-query';
+import React, { useState, useRef, useEffect, useReducer } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 // COMPONENTS
 import DisplayWebImg from '/src/components/DisplayWebImg';
@@ -10,11 +10,11 @@ import DisplayImg from '/src/components/DisplayImg';
 import Alert from '/src/components/Alert';
 import ProgressActivity from '/src/components/ProgressActivity';
 
-// FIREBASE
-import {db} from '/src/firebase/fireStore';
-import { doc, updateDoc} from 'firebase/firestore';
-import { storage } from '/src/firebase/storage';
-import { ref, uploadBytes } from "firebase/storage";
+// API
+import signin from '/src/api/users/signin';
+import signout from '/src/api/users/signout';
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
+import updateProfile from '/src/api/users/updateProfile';
 
 // SCSS
 import '/src/styles/components/pages/Account.scss';
@@ -41,7 +41,7 @@ import personDarkModeIcon from '/assets/img/icons/person_darkMode.svg';
 import mailIcon from '/assets/img/icons/mail.svg';
 import mailDarkModeIcon from '/assets/img/icons/mail_darkMode.svg';
 
-function Account ({darkMode, lan}) {
+function Account ({ darkMode, lan }) {
 
   const pageURL = window.location.href;
   const siteName = "ONEBIKE";
@@ -50,66 +50,34 @@ function Account ({darkMode, lan}) {
   const pageKeywords = "ONEBIKE, account, manage account, orders, preferences, bicycle, bicycle parts, Syria";
   const en = lan === 'en';
 
-  const { data: user, refetch: signoutUser } = useQuery('user', async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/signout`, {
-        method: 'POST',
-        credentials: 'include'
-      })  
-      if (!response.ok) {
-        const error = response.json()
-        throw new Error (error.message);
-      }
+  const queryClient = useQueryClient();
 
-      setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500);
-    } catch (err) {
-      console.error('Error while removed jwt token: ', err);
-    } finally {
-      return null;
-    }
-  }, { enabled: false });
+  const { data: user } = useQuery({
+    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryFn: checkAuthAndGetProfile,
+    onSuccess: () => setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500)
+  })
+  console.log('account', user);
+  const signoutMutation = useMutation({
+    mutationFn: signout,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', 'auth', 'profile', 'orders'] })
+  });
 
-  const { refetch: updateProfile } = useQuery('user', async () => {
-  
-    setActivity(true);
-    const { toggle, ...profileData } = editProfile;
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/user/profile/${user?.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(profileData)
-      })
-      if (!response.ok) throw new Error ('failed to update profile');
-
-      const updatedUser = await response.json();
-      if (!updatedUser) ('unknown error has accured');
-
-
-      // Upload new profile if there's
-      const newProfile = imgFile.current;
-      if (newProfile) {
-        const body = new FormData();
-        body.append('file', newProfile);
-        await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/uploads/profiles/${user.id}`, {
-          method: 'POST',
-          body
-        })
-      }
-
-      dispatch({ type: 'user_data_is_updated' });
-      setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')  
-      return updatedUser;
-    } catch (err) {
-      console.error('Error while updaing profile: ', err);
-      setAlertText(en ? 'Error updating Persoanl Data' : 'خطأ في تحديث البيانات الشخصية')
-      return user;
-    } finally {
-      setNewAlert(Math.random());
+  const updateProfileMutation = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: () => {
       setActivity(false);  
+      dispatch({ type: 'user_data_is_updated' });
+      setNewAlert(Math.random());
+      setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')  
+      queryClient.invalidateQueries({ queryKey: ['user', 'auth', 'profile', 'orders'] });
+    },
+    onError: () => {
+      setActivity(false);  
+      setAlertText(en ? 'Error updating Persoanl Data' : 'خطأ في تحديث البيانات الشخصية')
+      setNewAlert(Math.random());
     }
-  }, { enabled: false });
+  });
 
   const [ editProfile, dispatch ] = useReducer(editProfileWindowReducer, { 
     toggle: '', 
@@ -240,7 +208,7 @@ function Account ({darkMode, lan}) {
         }, 550);
         break;
       case 'signout_is_clicked':
-        signoutUser();
+        signoutMutation.mutate();
         break;
       case 'manage_content_btn_is_clicked':
         navigate('/account/admin');
@@ -251,7 +219,13 @@ function Account ({darkMode, lan}) {
         dispatch({type: action})
         break;
       case 'save_profile_window_button_is_clicked':
-        updateProfile();
+        setActivity(true);
+        const { toggle, ...profileData } = editProfile;
+        updateProfileMutation.mutate({ 
+          profileData, 
+          newProfile: imgFile.current,
+          userId: user?.id
+        });
         break;
       default:
         console.error('Error: Unknown action', action);
@@ -366,7 +340,7 @@ function Account ({darkMode, lan}) {
             <span className="account__userData__top-bar__item" data-action="myInfo_is_clicked" onClick={handleClick} ref={myInfoEL}>{en ? 'My Info' : 'معلوتي الشخصيه'}</span>
             <span className="account__userData__top-bar__item clicked" data-action="orders_is_clicked" onClick={handleClick} ref={ordersEL}>{en ? 'Orders' : 'الطلبات'}</span>
           </div>
-          <ul className="account__userData__description-cont" ref={descriptionContEL}>
+          <ul className="account__userData__description-cont" ref={descriptionContEL}>  
             <li className="account__userData__description-cont__myInfo-cont" ref={myInfoContEL}>
               <ul className="account__userData__description-cont__myInfo-cont__list" ref={myInfoListContEL}>
                 <li className="account__userData__description-cont__myInfo-cont__list__item">

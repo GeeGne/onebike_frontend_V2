@@ -1,7 +1,7 @@
 // HOOKS
 import React, {useEffect, useState, useRef, useReducer } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 // SCSS
 import '/src/styles/components/pages/admin/ContentManagementTable.scss';
@@ -16,6 +16,12 @@ import ProgressActivity from '/src/components/ProgressActivity';
 // HOOKS
 import useFetchUserData from '/src/hooks/useFetchUserData';
 import useFetchProductsData from '/src/hooks/useFetchProductsData';
+
+// API
+import updateProduct from '/src/api/products/updateProduct';
+import deleteProduct from '/src/api/products/deleteProduct';
+import getAllProducts from '/src/api/products/getAllProducts';
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
 
 // STORE
 import { useDataStore } from '/src/store/store';
@@ -39,39 +45,48 @@ import deleteWindowReducer from '/src/reducers/deleteWindowReducer';
 
 function ContentManagementTable ({darkMode, lan}) {
 
-  const { data: products } = useQuery(['products'], async () => {
-    try {
-      // fetch all products
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/products`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error (error.message);
-      }
-      const result = await response.json();
+  const queryClient = useQueryClient();
 
-      return result.products;
-    } catch (err) {
-      console.error('Error while fetching products: ', err.message);
-      return products;
-    }
-  });
-  const { data: user } = useQuery(['user'], async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/me`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error ('no user to auth');
+  const { data: products } = useQuery({
+    queryKey: ['products'],
+    queryFn: getAllProducts
+  })
 
-      const user = await response.json();
-      return user;
-    } catch (err) {
-      console.info('note: ', err);
-      return null;
-    }
+  const { data: user } = useQuery({
+    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryFn: checkAuthAndGetProfile
   });
 
-  console.log('products2', products);
+  const deleteProductMutation = useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: data => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      styleWhenDeletProduct(data.index);
+      setAlertText(en ? 'Success! product is deleted' : 'تم حذف المنتج بنجاح!')
+      setNewAlert(Math.random());
+    },
+    onError: () => {
+      setAlertText(en ? 'Error deleting product' : 'حصل خطأ في حذف المنتج')
+      setNewAlert(Math.random());
+    }
+  })
+
+  const updateProductMutation = useMutation({
+    mutationFn: updateProduct,
+    onSuccess: data => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      clearInputsAndCloseTab(data.index);
+      setAlertText(en ? 'Success! changes has been saved to the product' : 'تم حفظ التغييرات على المنتج بنجاح!')
+      setNewAlert(Math.random());
+      setActivity(false);
+    },
+    onError: () => {
+      setAlertText(en ? 'Error updaing product' : 'حصل خطأ في تعديل المنتج')
+      setNewAlert(Math.random());
+      setActivity(false);
+    }
+  })
+
   // const { user, userData, products, setRefreshProducts } = useDataStore();
   const [ typeItmArray, setTypeItmArray ] = useState([]);
   const [ deleteWindow, dispatch ] = useReducer(deleteWindowReducer, {
@@ -183,48 +198,13 @@ function ContentManagementTable ({darkMode, lan}) {
     }
   }
 
-  const saveProductChanges = async (productId, productData, index, img) => {
-    setActivity(true);
 
-    try {
-      const productRef = doc(db, "products", productId);
-      await updateDoc(productRef, productData);
+  const styleWhenDeletProduct = async index => {
 
-      if (img) {
-        const storageRef = ref(storage, getProductImgURL(productId));
-        await uploadBytes(storageRef, img);  
-      }
-
-      setRefreshProducts(Math.random());
-      clearInputsAndCloseTab(index);
-      setAlertText(en ? 'Success! changes has been saved to the product' : 'تم حفظ التغييرات على المنتج بنجاح!')
-    } catch(err) {
-      console.error('Error updating product: ', err);
-      setAlertText(en ? 'Error updaing product' : 'حصل خطأ في تعديل المنتج')
-    }
-
-    setNewAlert(Math.random());
-    setActivity(false);
-  }
-
-  const deleteProduct = async (productId, index) => {
     const findElement = ref => ref.find(el => el.dataset.index === index);
 
-    try {
-      const productRef = doc(db, 'products', productId);
-      await deleteDoc(productRef);
-
-      setAlertText(en ? 'Success! product is deleted' : 'تم حذف المنتج بنجاح!')
-      findElement(itemELRefs.current).style.opacity= '0';
-    
-      setTimeout(() => setRefreshProducts(Math.random()), 250);
-      setTimeout(() => findElement(itemELRefs.current).style.opacity= '1', 500)
-    } catch(err) {
-      console.error('Error deleting product: ', err);
-      setAlertText(en ? 'Error deleting product' : 'حصل خطأ في حذف المنتج')
-    }
-
-    setNewAlert(Math.random());
+    findElement(itemELRefs.current).style.opacity= '0';
+    setTimeout(() => findElement(itemELRefs.current).style.opacity= '1', 500)
   }
   
   useEffect(() => {
@@ -286,15 +266,14 @@ function ContentManagementTable ({darkMode, lan}) {
         findElement(brandInptELRefs.current).dataset.key = key;
         break;
       case 'save_button_is_clicked':
-
         const productData = {
-          title: {
-            en: findElement(titleEnInptELRefs.current).value || getProduct().title_en,
-            ar: findElement(titleArInptELRefs.current).value || getProduct().title_ar,
-          },
+          id: Number(productId),
+          title_en: findElement(titleEnInptELRefs.current).value || getProduct().title_en,
+          title_ar: findElement(titleArInptELRefs.current).value || getProduct().title_ar,
           category: findElement(categoryInptELRefs.current).dataset.key || getProduct().category,
           type: findElement(typeInptELRefs.current).dataset.key || getProduct().type,
-          color: 'black',
+          face: 'front',
+          color: 'default',
           state: findElement(itemStateInptELRefs.current).dataset.key || getProduct().state,
           brand: findElement(brandInptELRefs.current).dataset.key === 'none' 
             ? '' 
@@ -306,7 +285,8 @@ function ContentManagementTable ({darkMode, lan}) {
         }
         const img = findElement(imgInptELRefs.current).files[0] || false;
 
-        saveProductChanges(productId, productData, index, img);
+        setActivity(true);
+        updateProductMutation.mutate({ productData, img, index });
         break;
       case 'window_wrapper_is_clicked':
         e.stopPropagation()
@@ -316,8 +296,8 @@ function ContentManagementTable ({darkMode, lan}) {
         dispatch({type: action})
         break;
       case 'delete_window_button_is_clicked':
-        dispatch({type: action})
-        deleteProduct(productId, index);
+        dispatch({type: action});
+        deleteProductMutation.mutate({productId, index});
         break;
       
       default:
@@ -327,7 +307,7 @@ function ContentManagementTable ({darkMode, lan}) {
 
   const handleFocus = e => {
     const {type, index} = e.currentTarget.dataset;
-    const getEL = el => el.filter(el => Number(el.dataset.index) === Number(index))[0];
+    const getEL = el => el.find(el => Number(el.dataset.index) === Number(index));
 
     switch (type) {
       case 'item_state_input':

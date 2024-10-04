@@ -14,14 +14,11 @@ async function signin (formData) {
       throw new Error (error.message);
     }
 
-    const user = await response.json();
-    return user;
+    const result = await response.json();
+    return result;
   } catch (err) {
     console.error('Error: failed to signup: ', err);
-    // setAlertText(handleAuthError(err, en));
-    setAlertText(err.message);
-    setNewAlert(Math.random());
-    return false;
+    throw err;
   } 
 }
 

@@ -47,15 +47,25 @@ function SignIn ({darkMode, lan}) {
   const { data: user } = useQuery({
     queryKey: ['user', 'auth', 'profile', 'orders'],
     queryFn: checkAuthAndGetProfile,
+    onSuccess: () => { 
+      setProcessing(false);
+      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
+    },
+    onError: () => {
+      setAlertText(err.message);
+      setNewAlert(Math.random());
+      setProcessing(false);
+    }
   });
-  // const { data: user, refetch: signinUser } = useQuery('user', async () => {
-  // }, {  enabled: false });
   console.log('user: ', user);
 
   const signinMutation = useMutation({
     mutationFn: signin,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth']})
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', 'auth', 'profile', 'orders']}),
+    onError: err => {
+      setAlertText(err.message);
+      setNewAlert(Math.random());
+      setProcessing(false);
     }
   });
 
@@ -120,11 +130,9 @@ function SignIn ({darkMode, lan}) {
         return;
       }
 
-      await signinMutation.mutate(formData);
-      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
+      signinMutation.mutate(formData);
     } catch (err) {
-      console.error(err.message)
-    } finally {
+      console.error(err.message);
       setProcessing(false);
     }
   }

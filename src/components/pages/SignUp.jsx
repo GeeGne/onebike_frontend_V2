@@ -2,7 +2,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {Helmet} from 'react-helmet-async';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 // COMPONENTS
 import Banner from '/src/components/Banner';
@@ -14,6 +14,11 @@ import { useOrderStore, useDataStore} from '/src/store/store.js';
 
 // SCSS
 import '/src/styles/components/pages/SignUp.scss';
+
+// API
+import signin from '/src/api/users/signin';
+import signup from '/src/api/users/signup';
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
 
 // UTILS
 import validate from '/src/utils/validate';
@@ -40,33 +45,32 @@ function SignUp ({darkMode, lan}) {
   const pageTitle = en ? 'CREATE ACCOUNT' : 'انشاء حساب';
   const {pathname} = window.location;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const {headToCheckouts, setHeadToCheckouts} = useOrderStore();
 
-  const { data: user, error, isLoading, refetch: signupUser } = useQuery('user', async () => {
-    const {fname, lname, email, phone, password, newsLetter} = formData
-    try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/signup`, { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ name: fname + lname, email, phone, password })
-      });
+  const { data: user } = useQuery({
+    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryFn: checkAuthAndGetProfile,
+    onSuccess: () => {
+      setProcessing(false);
+      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
+    }
+  })
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-
-      const user = await response.json();
-      return user;
-    } catch (err) {
-      console.error('Error while signing up: ', err);
-      // setAlertText(handleAuthError(err, en));
+  const signupMutation = useMutation({
+    mutationFn: signup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] })
+    },
+    onError: (err) => {
+      setProcessing(false);
       setAlertText(err.message);
       setNewAlert(Math.random());
-      return false;
+      console.error('An Error while submiting: ', err);
+      formEL.current.style.border = 'solid var(--red-color) 2px';
     }
-  }, { enabled: false });
+  })
 
   const redirector = new Redirector(navigate, headToCheckouts, setHeadToCheckouts);
   console.log('user', user);
@@ -179,15 +183,10 @@ function SignUp ({darkMode, lan}) {
       const isInputsValid = validateInputs();
       if (!isInputsValid) throw new Error('Not all inputs are valid');
 
-      const user = await signupUser();
-      if (!user) throw new Error('Signing up has failed');
-
-      setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
+      signupMutation.mutate(formData);
     } catch (err) {
       console.error('An Error while submiting: ', err);
       formEL.current.style.border = 'solid var(--red-color) 2px';
-    } finally {
-      setProcessing(false);
     }
   }
 

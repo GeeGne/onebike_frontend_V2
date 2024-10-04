@@ -1,6 +1,6 @@
 // HOOKS
 import React, {useEffect, useRef, useState} from 'react';
-import { useQuery, useQueryClient } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 // SCSS
 import '/src/styles/components/pages/admin/AddProductWindow.scss';
@@ -15,11 +15,14 @@ import DisplayImg from '/src/components/DisplayImg';
 import menu from '/src/data/menu.json';
 import brands from '/src/data/brands.json';
 
-// FIREBASE
-import { db } from '/src/firebase/fireStore';
-import { getDoc, doc, collection, getDocs, setDoc, updateDoc } from 'firebase/firestore';
-import { storage } from '/src/firebase/storage';
-import { ref, uploadBytes } from "firebase/storage";
+// API
+import signin from '/src/api/users/signin';
+import signout from '/src/api/users/signout';
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
+import updateProfile from '/src/api/users/updateProfile';
+import getAllProducts from '/src/api/products/getAllProducts';
+import createProduct from '/src/api/products/createProduct';
+
 
 // STORE
 import { useDataStore } from '/src/store/store';
@@ -32,73 +35,27 @@ import emptyImgURL from '/assets/img/empty/empty.webp';
 
 function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
   const queryClient = useQueryClient();
-  const [ productData, setProductData ] = useState(false);
-  const { data: products, refetch: fetchProducts } = useQuery(['products'], async () => {
-    try {
-      // fetch all products
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/products`);
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error (error.message);
-      }
-      const result = await response.json();
 
-      return result.products;
-    } catch (err) {
-      console.error('Error while fetching products: ', err.message);
-      return products;
-    }
+  const { data: products } = useQuery({
+    queryKey: ['proudcts'],
+    queryFn: getAllProducts
   });
-  const { refetch: addNewProductData} = useQuery(['products', productData], async () => {
-    
-    setActivity(true);
-
-    try {
-      // add new product to db
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/products`, {
-        method: 'POST',
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include',
-        body: JSON.stringify(productData)
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error (error.message);
-      }
-      const result = await response.json();
-
-      // upload new product image to storage
-      const productImage = imgFile.current || await fetchEmptyImgAsBlob(emptyImgURL);
-      const body = new FormData();
-      body.append('file', productImage);
-      const response1 = await fetch(`${import.meta.env.VITE_BACKEND_URI}/api/v1/uploads/products/${result.productId}/${productData.face}/${productData.color}`, {
-        method: 'POST',
-        credentials: 'include',
-        body
-      });
-      if (!response1.ok) {
-        const error = await response1.json();
-        throw new Error (error.message);
-
-      }
-
-      fetchProducts();
+  const newProductMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      setActivity(false); 
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       clearInputs();
       toggleData(' hide');
-      setAlertText(en ? 'Success! new Product is added to the cloud' : 'تم اضافه منتج جديد  بنجاج!')
-      return updatedProducts;
-
-    } catch (err) {
-      console.error('Error while creating new product: ', err.message);
-      setAlertText(en ? 'Error adding new product' : 'حصل خطأ في اضافه المنتج')
-      return products;
-
-    } finally {
+      setAlertText(en ? 'Success! new Product is added to the cloud' : 'تم اضافه منتج جديد  بنجاج!') 
       setNewAlert(Math.random());
-      setActivity(false);
+    },
+    onError: () => {
+      setActivity(false); 
+      setAlertText(en ? 'Error adding new product' : 'حصل خطأ في اضافه المنتج')
+      setNewAlert(Math.random());
     }
-  }, { enabled: productData });
-
+  })
   // const { user, userData, setRefreshProducts } = useDataStore();
   const [ productSrc, setProductSrc ] = useState("");
   const [ typeItmKey, setTypeItmKey ] = useState("");
@@ -222,7 +179,8 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
             ? ''
             : brandInptEL.current.dataset.key || '',
         }
-        setProductData(productData);
+        setActivity(true);
+        newProductMutation.mutate({ productData, productImage: imgFile.current });
         break;
       default:
         console.error('Error: unknown action: ', action);
