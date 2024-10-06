@@ -11,7 +11,7 @@ async function checkAuthAndGetProfile () {
     return user;
   } catch (err) {
     console.info('note: ', err.message);
-    return null;
+    throw err;
   }
 }
 

@@ -1,5 +1,6 @@
 // HOOKS
 import React, {useState, useEffect, useRef, useReducer} from 'react';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 // SCSS
 import '/src/styles/components/pages/admin/GeneralSettingsTable.scss';
@@ -19,10 +20,17 @@ import editAltWindowReducer from '/src/reducers/editAltWindowReducer';
 import editSiteDetailsWindowReducer from '/src/reducers/editSiteDetailsWindowReducer';
 
 // FIREBASE
-import { db} from '/src/firebase/fireStore';
+import { db } from '/src/firebase/fireStore';
 import { getDoc, deleteDoc, setDoc, doc, collection, updateDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { storage } from '/src/firebase/storage';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+// API
+import getBanners from '/src/api/banners/getBanners';
+import createBanner from '/src/api/banners/createBanner';
+import updateBannerOrders from '/src/api/banners/updateBannerOrders';
+import updateBannerAlt from '/src/api/banners/updateBannerAlt';
+import deleteBanner from '/src/api/banners/deleteBanner';
 
 // NANOID
 import { nanoid } from 'nanoid';
@@ -50,13 +58,91 @@ import linkDarkModeIcon from '/assets/img/icons/link_darkMode.svg';
 
 function GeneralSettingsTable ({darkMode, lan}) {
 
+  const queryClient = useQueryClient();
+
   const { 
-    homePageBannersData, 
-    setHomePageBannersData, 
-    setRefreshHomePageBannersData, 
     websiteDetailsData,
-    setRefreshWebsiteDetailsData
   } = useDataStore();
+
+  const { data: banners } = useQuery({
+    queryKey: ['banners'],
+    queryFn: getBanners
+  });
+
+  const updateBannerOrdersMutation = useMutation({
+    mutationFn: updateBannerOrders,
+    onMutate: () => {
+      setwindowActivity(' show');
+    },
+    onSettled: () => {
+      setNewAlert(Math.random());
+      setwindowActivity(' hide');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      setAlertText(en ? 'Banners order has been changed successfully!' : 'تم تغيير ترتيب اللافتات بنجاح!');
+    },
+    onError: () => {
+      setAlertText(en ? 'Error has been occured while changing the the order of the Banners' : 'حدث خطأ أثناء تغيير ترتيب اللافتات')
+    }
+  })
+
+  const updateBannerAltMutation = useMutation({
+    mutationFn: updateBannerAlt,
+    onMutate: () => {
+      setActivity(true);
+    },
+    onSettled: () => {
+      setActivity(false);
+      setNewAlert(Math.random());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      dispatch({type: 'alt_data_is_updated'})
+      clearAltInputValue();
+      setAlertText(en ? 'Banner alt has been updated successfully!' : 'تم تحديث النص البديل للافتة بنجاح!');
+    },
+    onError: () => {
+      setAlertText(en ? 'An error has occurred while updating the banner\'s alt' : 'حدث خطأ أثناء تحديث النص البديل للافتة');
+    }
+  })
+
+  const createBannerMutation = useMutation({
+    mutationFn: createBanner,
+    onMutate: () => {
+      setwindowActivity(' show');
+    },
+    onSettled: () => {
+      setwindowActivity(' hide');
+      setNewAlert(Math.random());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      setAlertText(en ? 'Success! new Banner is added to the cloud' : 'تم اضافه لافته جديده بنجاج!')
+    },
+    onError: () => {
+      setAlertText(en ? 'Error adding new Banner' : 'حصل خطأ في اضافه لافته');
+    }
+  });
+
+  const deleteBannerMutation = useMutation({
+    mutationFn: deleteBanner,
+    onMutate: () => {
+      setwindowActivity(' show');
+    },
+    onSettled: () => {
+      setwindowActivity(' hide');
+      setNewAlert(Math.random());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['banners'] });
+      setAlertText(en ? 'Success! new Banner is added to the cloud' : 'تم اضافه لافته جديده بنجاج!')
+    },
+    onError: () => {
+      setAlertText(en ? 'Error adding new Banner' : 'حصل خطأ في اضافه لافته');
+    }
+  })
+
   const [ newAlert, setNewAlert ] = useState(0);
   const [ alertText, setAlertText ] = useState(null);
   const [ editAltWindow, dispatch ] = useReducer(editAltWindowReducer, {
@@ -78,7 +164,7 @@ function GeneralSettingsTable ({darkMode, lan}) {
   const instagramInputEL = useRef(null);
 
   const en = lan === 'en';
-  const getBannerImgURL = item => `/assets/img/banners/homepage/${item.id}.webp`;
+  const getBannerImgURL = item => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/banners/${item.id}.webp`;
   const clearAltInputValue = () => altInputEL.current.value = "";
   const clearSiteDetailsInputValues = () => {
     emailInputEL.current.value = "";
@@ -87,7 +173,6 @@ function GeneralSettingsTable ({darkMode, lan}) {
     facebookInputEL.current.value = "";
     instagramInputEL.current.value = "";
   }
-
 
   const deleteBannersData = async () => {
     try {
@@ -107,53 +192,6 @@ function GeneralSettingsTable ({darkMode, lan}) {
       console.error('Error: couldn\'t delete Bannsers Data: ', error);
     }
   }
-  const updateBannersOrderData = async newBanners => {
-
-    setwindowActivity(' show');
-
-    try {
-      // await deleteBannersData();
-
-      const addBannerPromises = newBanners.map(banner => {
-        const docRef = doc(db, 'homePageBanners', banner.id);
-        return setDoc(docRef, banner);
-      });
-
-      await Promise.all(addBannerPromises);
-
-      // setHomePageBannersData([]);
-      setRefreshHomePageBannersData(Math.random());
-      setAlertText(en ? 'Banners order has been changed successfully!' : 'تم تغيير ترتيب اللافتات بنجاح!');
-    } catch (error) {
-      console.error('Error: couldn\'t update Bannsers Data: ', error);
-      setAlertText(en ? 'Error has been occured while changing the the order of the Banners' : 'حدث خطأ أثناء تغيير ترتيب اللافتات')
-    } finally {
-      setNewAlert(Math.random());
-      setwindowActivity(' hide');
-    }
-  }
-
-  const updateBannerAltData = async (documentID, alt) => {
-    
-    setActivity(true);
-
-    try {
-      const docRef = doc(db, 'homePageBanners', documentID);
-      await updateDoc(docRef, { alt });
-
-      dispatch({type: 'alt_data_is_updated'})
-      setRefreshHomePageBannersData(Math.random());
-      clearAltInputValue();
-
-      setAlertText(en ? 'Banner alt has been updated successfully!' : 'تم تحديث النص البديل للافتة بنجاح!');
-    } catch (error) {
-      console.error('Error: couldn\'t update alt data: ', error);
-      setAlertText(en ? 'An error has occurred while updating the banner\'s alt' : 'حدث خطأ أثناء تحديث النص البديل للافتة');
-    } finally {
-      setNewAlert(Math.random());
-      setActivity(false);
-    }
-  };
 
   const addNewBannerData = async (refID, bannerData) => {
     
@@ -239,20 +277,20 @@ function GeneralSettingsTable ({darkMode, lan}) {
 
   const handleClick = e => {
     const {action, index, bannerId, alt} = e.currentTarget.dataset;
-    const newArray = [...homePageBannersData];
-    const addOrders = array => array.map((item, i) => ({...item, order: i + 1}));
+    const newArray = [...banners];
+    const addOrders = array => array.map((item, i) => ([item.id, item.alt, i + 1]));
 
     switch (action) {
       case 'move_img_to_previous':
         if (Number(index) > 0) {
           [newArray[Number(index)], newArray[Number(index) - 1]] = [newArray[Number(index) - 1], newArray[Number(index)]];
-          updateBannersOrderData(addOrders(newArray));
+          updateBannerOrdersMutation.mutate(addOrders(newArray));
         }
         break;
       case 'move_img_to_next':
         if (Number(index) < newArray.length - 1) {
           [newArray[Number(index)], newArray[Number(index) + 1]] = [newArray[Number(index) + 1], newArray[Number(index)]];
-          updateBannersOrderData(addOrders(newArray));
+          updateBannerOrdersMutation.mutate(addOrders(newArray));
         }
         break;
       case 'window_background_is_clicked':
@@ -265,7 +303,7 @@ function GeneralSettingsTable ({darkMode, lan}) {
         dispatchSiteDetails({ type: action });
         break;
       case 'save_window_button_is_clicked':
-        updateBannerAltData(bannerId, alt);
+        updateBannerAltMutation.mutate({ id: bannerId, alt });
         break;
       case 'save_siteDetails_window_button_is_clicked':
         const { toggle, ...inputsValues } = editSiteDetails;
@@ -275,7 +313,8 @@ function GeneralSettingsTable ({darkMode, lan}) {
         dispatch({ type: action, id: bannerId });
         break;
       case 'delete_banner_img':
-        deleteBannerData(bannerId);
+        // deleteBannerData(bannerId);
+        deleteBannerMutation.mutate(bannerId);
         break;
       case 'edit_siteDetails_button_is_clicked':
         dispatchSiteDetails({ type: action });
@@ -296,8 +335,8 @@ function GeneralSettingsTable ({darkMode, lan}) {
         const file = e.currentTarget.files[0];
         imgBannerFile.current = file || fetchEmptyImgAsBlob(emptyImgURL);
 
-        const bannerData = {id: nanoid(12), alt: '', order: homePageBannersData.length + 1};
-        addNewBannerData(bannerData.id, bannerData);
+        const order = banners.length + 1;
+        createBannerMutation.mutate({ order, img: imgBannerFile.current });
         break;
       case'email':
       case'phone':
@@ -310,6 +349,8 @@ function GeneralSettingsTable ({darkMode, lan}) {
         console.error('Error: unknown name: ', name);
     }
   }
+
+  console.log({banners});
 
   return (
     <div className="gs">
@@ -358,7 +399,7 @@ function GeneralSettingsTable ({darkMode, lan}) {
       <section className="gs__banners-sec">
         <h2 className="gs__banners-sec__title">{en ? 'Banners (Home Page)' : 'اللافتات (الصفحة الرئيسية)'}</h2>
         <ul className="gs__banners-sec__lst">
-        {homePageBannersData?.map((itm, i) => 
+        {banners?.map((itm, i) => 
           <li className="gs__banners-sec__lst__itm" key={i}>
             <span className="gs__banners-sec__lst__itm__count">{i + 1}</span>
             <button className="gs__banners-sec__lst__itm__up-arrow-btn" aria-label="move image to previous" data-index={i} data-action="move_img_to_previous" onClick={handleClick} />

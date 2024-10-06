@@ -10,43 +10,43 @@ function DisplayWebImg ({className, src, alt, loading, fetchpriority, backup, re
   const [imageUrl, setImageUrl] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
-  const hanldeBackup = () => {
-    switch (backup) {
-      case false:
-        return isLoading ? '' : emptyLayout1;
-      case undefined:
-        return isLoading ? '': emptyLayout2;
-      default:
-        return backup;
-    }
-  }
-
-  useEffect(() => {
-
-    const fetchImageUrl = async () => {
-      if (!src) return;
-
-      try {
-        const imageRef = ref(storage, src);
-        const url = await getDownloadURL(imageRef);
-
-        setImageUrl(url);
-      } catch (error) {
-        console.error("Error fetching image:", error);
-        setImageUrl("");
-        setIsLoading(false)
-      }
-    };
-
-    fetchImageUrl();
-  }, [src, refresh]);
-
-  const handleLoad = () => imageUrl && setIsLoading(false);
+  // const hanldeBackup = () => {
+    // switch (backup) {
+      // case false:
+        // return isLoading ? '' : emptyLayout1;
+      // case undefined:
+        // return isLoading ? '': emptyLayout2;
+      // default:
+        // return backup;
+    // }
+  // }
+// 
+  // useEffect(() => {
+// 
+    // const fetchImageUrl = async () => {
+      // if (!src) return;
+// 
+      // try {
+        // const imageRef = ref(storage, src);
+        // const url = await getDownloadURL(imageRef);
+// 
+        // setImageUrl(url);
+      // } catch (error) {
+        // console.error("Error fetching image:", error);
+        // setImageUrl("");
+        // setIsLoading(false)
+      // }
+    // };
+// 
+    // fetchImageUrl();
+  // }, [src, refresh]);
+  const handleLoad = () => setIsLoading(false);
   return (
     
     <img 
       className={className} 
-      src={imageUrl || hanldeBackup()} 
+      // src={imageUrl || hanldeBackup()} 
+      src={src} 
       loading={loading || ''} 
       alt={alt || ''} 
       fetchpriority={fetchpriority || 'auto'} 

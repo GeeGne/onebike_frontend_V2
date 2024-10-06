@@ -8,7 +8,7 @@ async function createProduct ({ productData, productImage }) {
 
     const uri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/products`;
     const response = await fetch(uri, {
-      method: 'POST',
+      method: 'PUT',
       headers: { "Content-Type": "application/json" },
       credentials: 'include',
       body: JSON.stringify(productData)

@@ -1,6 +1,6 @@
 // HOOKS
 import React, {useEffect, useState, useRef } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 
 // SCSS
@@ -15,6 +15,11 @@ import DisplayWebImg from '/src/components/DisplayWebImg';
 import Alert from '/src/components/Alert';
 import ProgressActivity from '/src/components/ProgressActivity';
 
+// API
+import signin from '/src/api/users/signin';
+import signup from '/src/api/users/signup';
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
+
 // JSON
 import menu from '/src/data/menu.json';
 
@@ -23,8 +28,11 @@ import Redirector from '/src/utils/Redirector';
 
 function Admin ({darkMode, lan}) {
 
-  // const { userData, products, setRefreshProducts } = useDataStore();
-  const { data: user } = useQuery('user');
+  const { data: user } = useQuery({
+    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryFn: checkAuthAndGetProfile
+  });
+
   const [ newAlert, setNewAlert ] = useState(0);
   const [ alertText, setAlertText ] = useState(null);
   const [ tab, setTab ] = useState('content-management');
@@ -34,6 +42,7 @@ function Admin ({darkMode, lan}) {
   const ordersBtnEL = useRef(null);
 
   const en = lan === 'en';
+  const clientQuery = useQueryClient();
   const navigate = useNavigate();
   const redirector = new Redirector(navigate);
   const titleTab = () => {
