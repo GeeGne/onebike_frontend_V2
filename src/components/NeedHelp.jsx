@@ -1,5 +1,6 @@
 // HOOKS
 import React, {useState, useEffect, useRef} from 'react';
+import { useQuery } from 'react-query';
 
 // SCSS
 import '/src/styles/components/NeedHelp.scss';
@@ -7,15 +8,15 @@ import '/src/styles/components/NeedHelp.scss';
 // COMPONENTS
 import Alert from './Alert';
 
+// api
+import getSocialLinks from '/src/api/socialLinks/getSocialLinks';
+
 // JSON
-// import websiteDetailsData from '/src/data/one-bike.json';
+// import socialLinks from '/src/data/one-bike.json';
 
 // UTILS
 import strRemoveSpace from '/src/utils/strRemoveSpace.js';
 import formatPhoneNumber from '/src/utils/formatPhoneNumber.js';
-
-// STORE
-import { useDataStore } from '/src/store/store'
 
 // ICONS
 import callIcon from '/assets/img/icons/call.svg';
@@ -29,7 +30,13 @@ import chatDotsIconDarkMode from '/assets/img/icons/chat_dots_darkMode.svg';
 
 function NeedHelp ({darkMode, lan}) {
 
-  const { websiteDetailsData } = useDataStore();
+  const { data } = useQuery({
+    queryKey: ['socialLinks'],
+    queryFn: getSocialLinks
+  })
+
+  const socialLinks = data?.result || {};
+
   const [alertText, setAlertText] = useState(null);
   const [newAlert, setNewAlert] = useState(0);
 
@@ -40,11 +47,11 @@ function NeedHelp ({darkMode, lan}) {
     
     switch (type) {
       case 'phone':
-        copiedMessage = formatPhoneNumber(websiteDetailsData.phone);
+        copiedMessage = formatPhoneNumber(socialLinks.phone);
         alertMessage = lan === 'en' ? 'Number is copied to the clipboard successfully!' : 'لقد تم نسخ رقم الهاتف بنجاح!';  
         break;
       case 'email':
-        copiedMessage = websiteDetailsData.email;
+        copiedMessage = socialLinks.email;
         alertMessage = lan === 'en' ? 'Email is copied to the clipboard successfully!' : 'لقد تم نسخ عنوان البريد الاكتروني بنجاح!';  
         break;
       default:
@@ -88,19 +95,19 @@ function NeedHelp ({darkMode, lan}) {
         <img className="need-help-container__call-us__img" alt="Call Icon" fetchpriority="high" src={darkMode ? callIconDarkMode : callIcon}/>
         <h2 className="need-help-container__call-us__title">{lan === 'en' ? 'Call us' : 'اتصل بنا'}</h2>
         <h3 className="need-help-container__call-us__description">{lan === 'en' ? 'We\'re mostly available from 10 AM to 5 PM' : 'نحن متواجدون من الساعه 10 صباحاالى 5 مساءا في معظم الاوقات.'}</h3>
-        <a className="need-help-container__call-us__button" href={'tel:' + websiteDetailsData.phone} data-type="phone" onClick={handleClick}>{lan === 'en' ? 'Copy Phone Number' : 'انسخ رقم الهاتف'}</a>
+        <a className="need-help-container__call-us__button" href={'tel:' + socialLinks.phone} data-type="phone" onClick={handleClick}>{lan === 'en' ? 'Copy Phone Number' : 'انسخ رقم الهاتف'}</a>
       </section>
       <section className="need-help-container__email-us">
         <img className="need-help-container__email-us__img" alt="Email Icon" fetchpriority="high" src={darkMode ? mailIconDarkMode : mailIcon}/>
         <h2 className="need-help-container__email-us__title">{lan === 'en' ? 'Send an Email' : 'ارسل بريدا الكترونيا'}</h2>
         <h3 className="need-help-container__email-us__description">{lan === 'en' ? 'We respond to emails within 48 hours of your support request.' : 'نحن نستجيب على طلبك خلال 48 ساعه كحد اقصى.'}</h3>
-        <a className="need-help-container__email-us__button" href={'mailto:' + websiteDetailsData.email} data-type="email" onClick={handleClick}>{lan === 'en' ? 'Copy Email' : 'انسخ عنوان بريدنا الاكتروني'}</a>
+        <a className="need-help-container__email-us__button" href={'mailto:' + socialLinks.email} data-type="email" onClick={handleClick}>{lan === 'en' ? 'Copy Email' : 'انسخ عنوان بريدنا الاكتروني'}</a>
       </section>
       <section className="need-help-container__chat-with-us">
         <img className="need-help-container__chat-with-us__img" alt="Chat Icon" fetchpriority="high" src={darkMode ? chatDotsIconDarkMode : chatDotsIcon}/>
         <h2 className="need-help-container__chat-with-us__title">{lan === 'en' ? 'Chat with us' : 'تواصل معنا'}</h2>
         <h3 className="need-help-container__chat-with-us__description">{lan === 'en' ? 'Our amazing community is always here to answer whatever question you have, feel free to post your question on the Group Chat!' : 'مجتمعنا الفريد من نوعه متواجد دائما للدعم على ايا استفسار لديك, قم بارسال سؤالك على مجموعه المحادثه!'}</h3>
-        <a className="need-help-container__chat-with-us__a" href={websiteDetailsData.whatsApp} target="_blank">{lan === 'en' ? 'Join our Group Chat' : 'انضم الى مجموعه المحادثه'}</a>
+        <a className="need-help-container__chat-with-us__a" href={socialLinks.whatsApp} target="_blank">{lan === 'en' ? 'Join our Group Chat' : 'انضم الى مجموعه المحادثه'}</a>
       </section>
     </div>
   )

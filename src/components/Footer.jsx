@@ -1,6 +1,7 @@
 // HOOKS
 import React, {useState, useEffect, useRef} from 'react';
 import {Link} from 'react-router-dom';
+import { useQuery } from 'react-query';
 
 // SCSS
 import '../styles/components/Footer.scss';
@@ -9,14 +10,14 @@ import '../styles/components/Footer.scss';
 import Alert from './Alert';
 import DisplayImg from '/src/components/DisplayImg';
 
+// api
+import getSocialLinks from '/src/api/socialLinks/getSocialLinks';
+
 // JSON
 // import oneBike from '/src/data/one-bike.json'
 
 // UTILS
 import formatPhoneNumber from '/src/utils/formatPhoneNumber.js';
-
-// STORE
-import { useDataStore } from '/src/store/store';
 
 //  ICONS
 import facebookIcon from '/assets/img/icons/facebook.svg';
@@ -34,7 +35,13 @@ import mailIconDarkMode from '/assets/img/icons/mail_darkMode.svg';
 
 function Footer ({darkMode, lan}) {
 
-  const { websiteDetailsData } = useDataStore();
+  const { data } = useQuery({
+    queryKey: ['socialLinks'],
+    queryFn: getSocialLinks
+  })
+
+  const socialLinks = data?.result || {};
+
   const [alertText, setAlertText] = useState(null);
   const [newAlert, setNewAlert] = useState(0);
 
@@ -43,12 +50,12 @@ function Footer ({darkMode, lan}) {
     let alertMessage ;
     
     if (type === 'phone') {
-      copiedMessage = formatPhoneNumber(websiteDetailsData.phone);
+      copiedMessage = formatPhoneNumber(socialLinks.phone);
       alertMessage = lan === 'en' ? 'Number is copied to the clipboard successfully!' : 'لقد تم نسخ رقم الهاتف بنجاح!';
     }
 
     if (type === 'email') {
-      copiedMessage = websiteDetailsData.email;
+      copiedMessage = socialLinks.email;
       alertMessage = lan === 'en' ? 'Email is copied to the clipboard successfully!' : 'لقد تم نسخ عنوان البريد الاكنروني بنجاح!';
     }
   
@@ -118,15 +125,15 @@ function Footer ({darkMode, lan}) {
           <ul className="footer-cont__upper-grd__contactUs-sec__lst">
             <li className="footer-cont__upper-grd__contactUs-sec__lst__itm">
               <DisplayImg className="footer-cont__upper-grd__contactUs-sec__lst__itm__img" src={darkMode ? callIconDarkMode : callIcon} fetchpriority="high" alt="Call Icon" />
-              <a className="footer-cont__upper-grd__contactUs-sec__lst__itm__link" href={'tel:' + websiteDetailsData.phone} onClick={() => handleClick('phone')}>{formatPhoneNumber(websiteDetailsData.phone)}</a>
+              <a className="footer-cont__upper-grd__contactUs-sec__lst__itm__link" href={'tel:' + socialLinks.phone} onClick={() => handleClick('phone')}>{formatPhoneNumber(socialLinks.phone)}</a>
             </li>
             <li className="footer-cont__upper-grd__contactUs-sec__lst__itm">
               <DisplayImg className="footer-cont__upper-grd__contactUs-sec__lst__itm__img" src={darkMode ? mailIconDarkMode : mailIcon} fetchpriority="high" alt="mail Icon"/>
-              <a className="footer-cont__upper-grd__contactUs-sec__lst__itm__link" href={'mailto:' + websiteDetailsData.email} onClick={() => handleClick('email')}>{websiteDetailsData.email}</a>
+              <a className="footer-cont__upper-grd__contactUs-sec__lst__itm__link" href={'mailto:' + socialLinks.email} onClick={() => handleClick('email')}>{socialLinks.email}</a>
             </li>
             <li className="footer-cont__upper-grd__contactUs-sec__lst__itm">
               <DisplayImg className="footer-cont__upper-grd__contactUs-sec__lst__itm__img" src={darkMode ? whatsappIconDarkMode : whatsappIcon} fetchpriority="high" alt="Whatsapp Icon" />
-            <Link className="footer-cont__upper-grd__contactUs-sec__lst__itm__link" to={websiteDetailsData.whatsApp} target="_blank" tabIndex="0">{lan === 'en' ? 'Chat with us' : 'تحدث معنا'}</Link>
+            <Link className="footer-cont__upper-grd__contactUs-sec__lst__itm__link" to={socialLinks.whatsApp} target="_blank" tabIndex="0">{lan === 'en' ? 'Chat with us' : 'تحدث معنا'}</Link>
             </li>
           </ul>
         </section>
@@ -134,9 +141,9 @@ function Footer ({darkMode, lan}) {
 
       <div className="footer-cont__lower">
         <section className="footer-cont__lower__media-sec">
-        <a href={websiteDetailsData.facebook} target="_blank" tabIndex="0"><DisplayImg className="footer-cont__lower__media-sec__media-icon" src={darkMode ? facebookIcon : facebookIconDarkMode} fetchpriority="high" alt="Facebook Icon"/></a>
-        <a href={websiteDetailsData.whatsApp} target="_blank" tabIndex="0"><DisplayImg className="footer-cont__lower__media-sec__media-icon" src={darkMode ? whatsappIcon : whatsappIconDarkMode} fetchpriority="high" alt="Whatsapp Icon"/></a>
-        <a href={websiteDetailsData.instagram} target="_blank" tabIndex="0"><DisplayImg className="footer-cont__lower__media-sec__media-icon" src={darkMode ? instagramIcon : instagramIconDarkMode} fetchpriority="high" alt="Instagram Icon"/></a>
+        <a href={socialLinks.facebook} target="_blank" tabIndex="0"><DisplayImg className="footer-cont__lower__media-sec__media-icon" src={darkMode ? facebookIcon : facebookIconDarkMode} fetchpriority="high" alt="Facebook Icon"/></a>
+        <a href={socialLinks.whatsApp} target="_blank" tabIndex="0"><DisplayImg className="footer-cont__lower__media-sec__media-icon" src={darkMode ? whatsappIcon : whatsappIconDarkMode} fetchpriority="high" alt="Whatsapp Icon"/></a>
+        <a href={socialLinks.instagram} target="_blank" tabIndex="0"><DisplayImg className="footer-cont__lower__media-sec__media-icon" src={darkMode ? instagramIcon : instagramIconDarkMode} fetchpriority="high" alt="Instagram Icon"/></a>
         </section>
         <section className="footer-cont__lower__organism-rights">
           <h3 className="footer-cont__lower__organism-rights__h3">{lan === 'en' ? 'Syria © 2024 ONE BIKE all rights reseved' : 'سوريا © 2024 ون بايك جميع الحقوق محفوظة'}</h3>

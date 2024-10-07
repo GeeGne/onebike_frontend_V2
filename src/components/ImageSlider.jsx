@@ -1,5 +1,6 @@
 // HOOKS
 import React, {useState, useRef, useEffect} from 'react';
+import { useQuery } from 'react-query';
 
 // SCSS
 import '../styles/components/ImageSlider.scss';
@@ -8,17 +9,20 @@ import '../styles/components/ImageSlider.scss';
 import DisplayImg from '/src/components/DisplayImg';
 import DisplayWebImg from '/src/components/DisplayWebImg';
 
-// JSON
-// import homePageBannersData from '/src/data/slider.json';
+// api
+import getBanners from '/src/api/banners/getBanners'
 
-// STORE 
-import { useDataStore } from '/src/store/store';
+// JSON
+// import banners?.result from '/src/data/slider.json';
 
 function ImageSlider ({darkMode, lan}) {
 
+  const { data: banners } = useQuery({
+    queryKey: ['banners'],
+    queryFn: getBanners
+  })
+
   const [currentImage, setCurrentImage] = useState(null);
-  const { homePageBannersData } = useDataStore();
-  // const homePageBannersData = [];
 
   const initialX = useRef(null);
   const currentX = useRef(null);
@@ -28,10 +32,10 @@ function ImageSlider ({darkMode, lan}) {
   const imageSliderElement = useRef(null);
 
   const displayBlocks = [1, 2, 3, 4];
-  const isBannersDataLoaded = homePageBannersData.length !== 0;
-  const firstImage = isBannersDataLoaded && homePageBannersData[0];
-  const lastImage = isBannersDataLoaded && homePageBannersData[homePageBannersData.length - 1];
-  const getBannerImgURL = item => `/assets/img/banners/homepage/${item.id}.webp`;
+  const isBannersDataLoaded = banners !== undefined;
+  const firstImage = isBannersDataLoaded && banners[0];
+  const lastImage = isBannersDataLoaded && banners[banners?.length - 1];
+  const getBannerImgURL = item => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/banners/${item?.id}.webp`;
 
   const vars = (action) => {
     // note: in theory sliderScrollWidth should be equal to sliderScrollLeft when sliding all the way to the left,
@@ -52,7 +56,7 @@ function ImageSlider ({darkMode, lan}) {
     const sliderLastImageWidth = sliderScrollWidth - sliderWidth * 2;
     const extraLength = 100;
     const totalScroll = sliderScrollLeft + sliderWidth + extraLength;
-    const lastIndex = homePageBannersData.length - 1;
+    const lastIndex = banners?.length - 1;
 
     return {
       sliderWidth,
@@ -177,14 +181,14 @@ function ImageSlider ({darkMode, lan}) {
       <ul className='imageSlider-cont__img-holder' onTouchStart={handleStart}  onTouchMove={handleMove} onTouchEnd={handleEnd} ref={imageSliderElement}>
         { isBannersDataLoaded 
           ? <li className='imageSlider-cont__img-holder__imges'>
-              <DisplayWebImg className='imageSlider-cont__img-holder__imges__img' src={getBannerImgURL(lastImage)} alt={lastImage.alt} loading="lazy" />
+              <DisplayWebImg className='imageSlider-cont__img-holder__imges__img' src={getBannerImgURL(lastImage)} alt={lastImage?.alt} loading="lazy" />
             </li>
           : <li className='imageSlider-cont__img-holder__imges'>
               <div className='imageSlider-cont__img-holder__imges__img empty --panel-flick' />
             </li>
         }
         { isBannersDataLoaded 
-          ? homePageBannersData.map((data, i) =>
+          ? banners?.map((data, i) =>
             <li className='imageSlider-cont__img-holder__imges' key={data.id}>
               <DisplayWebImg className='imageSlider-cont__img-holder__imges__img' src={getBannerImgURL(data)} alt={data.alt} loading={i < 1 ? "eager" : "lazy"} fetchpriority={i < 1 ? "high" : ""} />
             </li>)
@@ -195,7 +199,7 @@ function ImageSlider ({darkMode, lan}) {
         }
         { isBannersDataLoaded 
           ? <li className='imageSlider-cont__img-holder__imges'>
-              <DisplayWebImg className='imageSlider-cont__img-holder__imges__img'  src={getBannerImgURL(firstImage)} alt={firstImage.alt} loading="lazy"/>
+              <DisplayWebImg className='imageSlider-cont__img-holder__imges__img'  src={getBannerImgURL(firstImage)} alt={firstImage?.alt} loading="lazy"/>
             </li>
           : <li className='imageSlider-cont__img-holder__imges'>
               <div className='imageSlider-cont__img-holder__imges__img empty --panel-flick' />
@@ -204,7 +208,7 @@ function ImageSlider ({darkMode, lan}) {
       </ul>
       <ul className="imageSlider-cont__dots-container">
         { isBannersDataLoaded 
-          ?  homePageBannersData.map((data, i) =>
+          ?  banners?.map((data, i) =>
               <li className ={`imageSlider-cont__dots-container__dot ${i === currentImage && 'current'}`} key={data.id} />
             )
           : displayBlocks.map((data, i) =>

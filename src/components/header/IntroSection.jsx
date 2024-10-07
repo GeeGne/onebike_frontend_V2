@@ -1,6 +1,7 @@
 // HOOKS
-import React, {useState, useEffect, useRef} from 'react';
-import {Link} from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useQuery } from 'react-query';
 
 // SCSS
 import '../../styles/components/header/IntroSection.scss';
@@ -17,8 +18,8 @@ import LightDarkButton from '../LightDarkButton';
 import strRemoveSpace from '/src/utils/strRemoveSpace.js';
 import formatPhoneNumber from '/src/utils/formatPhoneNumber.js';
 
-// STORE
-import { useDataStore } from '/src/store/store';
+// api
+import getSocialLinks from '/src/api/socialLinks/getSocialLinks';
 
 // ICONS
 import facebookIcon from '/assets/img/icons/facebook.svg';
@@ -36,7 +37,17 @@ import callPlusFillIconDarkMode from '/assets/img/icons/call_plus_fill_darkMode.
 
 function IntroSection ({onThemeChange, onLanguageChange}) {
  
-  const { websiteDetailsData } = useDataStore();
+  // const { data: { result: socialLinks } } = useQuery({
+  //   queryKey: ['socialLinks'],
+  //   queryFn: getSocialLinks
+  // });
+  const { data } = useQuery({
+    queryKey: ['socialLinks'],
+    queryFn: getSocialLinks
+  });
+
+  const socialLinks = data?.result || {};
+
   const [darkMode, setDarkMode] = useState(false);
   const [lan, setLanguage] = useState('en');
   const [alertText, setAlertText] = useState(null);
@@ -120,13 +131,13 @@ function IntroSection ({onThemeChange, onLanguageChange}) {
   return (
     <section className="userinfo-container --fade-in animate--05s delay--03s iteration--1" ref={infoSectionEL}>
       <Alert alertText={alertText} newAlert={newAlert}/>
-        <a className="userinfo-container__facebook" href={websiteDetailsData?.facebook} target="_blank" tabIndex="0" aria-label="Head to our facebook page" rel="noopener noreferrer" />
-        <a className="userinfo-container__whatsapp" href={websiteDetailsData?.whatsApp} target="_blank" tabIndex="0" aria-label="Head to our whatsapp group" rel="noopener noreferrer" />
-        <a className="userinfo-container__instagram" href={websiteDetailsData?.instagram} target="_blank" tabIndex="0" aria-label="Head to our instagram" rel="noopener noreferrer" />
+        <a className="userinfo-container__facebook" href={socialLinks?.facebook} target="_blank" tabIndex="0" aria-label="Head to our facebook page" rel="noopener noreferrer" />
+        <a className="userinfo-container__whatsapp" href={socialLinks?.whatsApp} target="_blank" tabIndex="0" aria-label="Head to our whatsapp group" rel="noopener noreferrer" />
+        <a className="userinfo-container__instagram" href={socialLinks?.instagram} target="_blank" tabIndex="0" aria-label="Head to our instagram" rel="noopener noreferrer" />
 
-        <a className="userinfo-container__phone-number" href={'tel:' + websiteDetailsData?.phone} onClick={handleClick} onMouseEnter={() => handleHover('enter')} onMouseLeave={() => handleHover('leave')}>
+        <a className="userinfo-container__phone-number" href={'tel:' + socialLinks?.phone} onClick={handleClick} onMouseEnter={() => handleHover('enter')} onMouseLeave={() => handleHover('leave')}>
           <img src={darkMode ? callIconDarkMode : callIcon} ref={phoneNumberIconElement} alt="Call Icon"/>
-          <span ref={phoneNumberH2Element}>{formatPhoneNumber(websiteDetailsData?.phone) || (en ? 'Loading..' : '..جاري التحميل')}</span>
+          <span ref={phoneNumberH2Element}>{formatPhoneNumber(socialLinks?.phone) || (en ? 'Loading..' : '..جاري التحميل')}</span>
         </a>
 
         <LightDarkButton onThemeChange={themeData}/>

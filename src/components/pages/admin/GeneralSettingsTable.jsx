@@ -62,16 +62,12 @@ function GeneralSettingsTable ({darkMode, lan}) {
 
   const queryClient = useQueryClient();
 
-  // const { 
-    // socialLinks,
-  // } = useDataStore();
-
   const { data: banners } = useQuery({
     queryKey: ['banners'],
     queryFn: getBanners
   });
 
-  const { data: socialLinks } = useQuery({
+  const { data: { result: socialLinks } } = useQuery({
     queryKey: ['socialLinks'],
     queryFn: getSocialLinks,
     onSuccess: (data) => dispatchSiteDetails({ type: 'socialLinks_is_loaded', socialLinks: data.result })
@@ -202,27 +198,6 @@ function GeneralSettingsTable ({darkMode, lan}) {
     instagramInputEL.current.value = "";
   }
 
-  const updateSiteDetailsData = async newData => {
-    
-    setActivity(true);
-
-    try {
-      const docRef = doc(db, 'websiteDetails', 'onebike');
-      await updateDoc(docRef, newData);
-
-      dispatchSiteDetails({type: 'websiteDetails_data_is_updated'});
-      clearSiteDetailsInputValues();
-      setRefreshsocialLinks(Math.random());
-      setAlertText(en ? 'Success! Website Details are updated successfully' : 'نجاح! تم تحديث تفاصيل الموقع بنجاح')
-    } catch (error) {
-      console.error('Error: couldn\'t add Banner Data: ', error);
-      setAlertText(en ? 'Error updating Website Details' : 'خطأ في تحديث تفاصيل الموقع');
-    } finally {
-      setNewAlert(Math.random());
-      setActivity(false);
-    }
-  };
-
   const renderLoadingState = textContent => {
 
     if (activity) {
@@ -339,27 +314,27 @@ function GeneralSettingsTable ({darkMode, lan}) {
             <DisplayImg src={darkMode ? mailDarkModeIcon : mailIcon }/>
             <span>{en ? 'Email' : 'البريد الاكتروني'}</span>
           </label>
-          <input className="gs__editSiteDetails-window__wrapper__email-inpt" id="email" name="email" placeholder={socialLinks?.result.email} onChange={handleChange} ref={emailInputEL} />
+          <input className="gs__editSiteDetails-window__wrapper__email-inpt" id="email" name="email" placeholder={socialLinks.email} onChange={handleChange} ref={emailInputEL} />
           <label className="gs__editSiteDetails-window__wrapper__phone-lbl" htmlFor="phone">
             <DisplayImg src={darkMode ? callDarkModeIcon : callIcon }/>
             <span>{en ? 'Phone': 'رقم الهاتف'}</span>
           </label>
-          <input className="gs__editSiteDetails-window__wrapper__phone-inpt" id="phone" name="phone" placeholder={socialLinks?.result.phone} onChange={handleChange} ref={phoneInputEL} />
+          <input className="gs__editSiteDetails-window__wrapper__phone-inpt" id="phone" name="phone" placeholder={socialLinks.phone} onChange={handleChange} ref={phoneInputEL} />
           <label className="gs__editSiteDetails-window__wrapper__whatsApp-lbl" htmlFor="whatsApp">
             <DisplayImg src={darkMode ? whatsappDarkModeIcon : whatsappIcon }/>
             <span>{en ? 'Whatsapp Link' : 'رابط الواتساب'}</span>
           </label>
-          <input className="gs__editSiteDetails-window__wrapper__whatsApp-inpt" id="whatsApp" name="whatsApp" placeholder={socialLinks?.result.whatsApp} onChange={handleChange} ref={whatsAppInputEL} />
+          <input className="gs__editSiteDetails-window__wrapper__whatsApp-inpt" id="whatsApp" name="whatsApp" placeholder={socialLinks.whatsApp} onChange={handleChange} ref={whatsAppInputEL} />
           <label className="gs__editSiteDetails-window__wrapper__facebook-lbl" htmlFor="facebook">
             <DisplayImg src={darkMode ? facebookDarkModeIcon : facebookIcon }/>
             <span>{en ? 'Facebook Link' : 'رابط الفيسبوك'}</span>
           </label>
-          <input className="gs__editSiteDetails-window__wrapper__facebook-inpt" id="facebook" name="facebook" placeholder={socialLinks?.result.facebook} onChange={handleChange} ref={facebookInputEL} />
+          <input className="gs__editSiteDetails-window__wrapper__facebook-inpt" id="facebook" name="facebook" placeholder={socialLinks.facebook} onChange={handleChange} ref={facebookInputEL} />
           <label className="gs__editSiteDetails-window__wrapper__instagram-lbl" htmlFor="instagram">
             <DisplayImg src={darkMode ? instagramDarkModeIcon : instagramIcon }/>
             <span>{en ? 'Instagram Link' : 'رابط الانستغرام'}</span>
           </label>
-          <input className="gs__editSiteDetails-window__wrapper__instagram-inpt" id="instagram" name="instagram" placeholder={socialLinks?.result.instagram} onChange={handleChange} ref={instagramInputEL} />
+          <input className="gs__editSiteDetails-window__wrapper__instagram-inpt" id="instagram" name="instagram" placeholder={socialLinks.instagram} onChange={handleChange} ref={instagramInputEL} />
           <button className="gs__editSiteDetails-window__wrapper__cancel-btn" data-action="cancel_siteDetails_window_button_is_clicked" onClick={handleClick}>{en ? 'Cancel' : 'الغاء'}</button>
           <button className="gs__editSiteDetails-window__wrapper__save-btn" data-action="save_siteDetails_window_button_is_clicked" onClick={handleClick}>{renderLoadingState(en ? 'Save' : 'حفظ')}</button>          
         </div>
@@ -397,21 +372,21 @@ function GeneralSettingsTable ({darkMode, lan}) {
               <DisplayImg className="gs__socialLinks-sec__lst__itm__wrapper__img" src={darkMode ? mailIcon : mailDarkModeIcon} />
               <span className="gs__socialLinks-sec__lst__itm__wrapper__spn">{en ? 'Email' : 'البريد الاكتروني'}</span>
             </div>
-            <span className="gs__socialLinks-sec__lst__itm__spn">{socialLinks?.result.email}</span>
+            <span className="gs__socialLinks-sec__lst__itm__spn">{socialLinks.email}</span>
           </li>
           <li className="gs__socialLinks-sec__lst__itm">
             <div className="gs__socialLinks-sec__lst__itm__wrapper">
               <DisplayImg className="gs__socialLinks-sec__lst__itm__wrapper__img" src={darkMode ? callIcon : callDarkModeIcon} />
               <span className="gs__socialLinks-sec__lst__itm__wrapper__spn">{en ? 'Phone' : 'رقم الهاتف'}</span>
             </div>
-            <span className="gs__socialLinks-sec__lst__itm__spn">{formatPhoneNumber(socialLinks?.result.phone)}</span>
+            <span className="gs__socialLinks-sec__lst__itm__spn">{formatPhoneNumber(socialLinks.phone)}</span>
           </li>
           <li className="gs__socialLinks-sec__lst__itm">
             <div className="gs__socialLinks-sec__lst__itm__wrapper">
               <DisplayImg className="gs__socialLinks-sec__lst__itm__wrapper__img" src={darkMode ? whatsappIcon : whatsappDarkModeIcon} />
               <span className="gs__socialLinks-sec__lst__itm__wrapper__spn">{en ? 'Whatsapp' : 'واتس اب'}</span>
             </div>
-            <a className="gs__socialLinks-sec__lst__itm__a" href={socialLinks?.result.whatsApp} target="_blank">
+            <a className="gs__socialLinks-sec__lst__itm__a" href={socialLinks.whatsApp} target="_blank">
               <DisplayImg src={darkMode ? linkDarkModeIcon : linkIcon} />
               {en ? 'view' : 'عرض'}
             </a>
@@ -421,7 +396,7 @@ function GeneralSettingsTable ({darkMode, lan}) {
               <DisplayImg className="gs__socialLinks-sec__lst__itm__wrapper__img" src={darkMode ? facebookIcon : facebookDarkModeIcon} />
               <span className="gs__socialLinks-sec__lst__itm__wrapper__spn">{en ? 'Facebook' : 'فيسبوك'}</span>
             </div>
-            <a className="gs__socialLinks-sec__lst__itm__a" href={socialLinks?.result.facebook} target="_blank">
+            <a className="gs__socialLinks-sec__lst__itm__a" href={socialLinks.facebook} target="_blank">
               <DisplayImg src={darkMode ? linkDarkModeIcon : linkIcon} />
               {en ? 'view' : 'عرض'}
             </a>
@@ -431,7 +406,7 @@ function GeneralSettingsTable ({darkMode, lan}) {
               <DisplayImg className="gs__socialLinks-sec__lst__itm__wrapper__img" src={darkMode ? instagramIcon : instagramDarkModeIcon} />
               <span className="gs__socialLinks-sec__lst__itm__wrapper__spn">{en ? 'Instagram' : 'انستغرام'}</span>
             </div>
-            <a className="gs__socialLinks-sec__lst__itm__a" href={socialLinks?.result.instagram} target="_blank">
+            <a className="gs__socialLinks-sec__lst__itm__a" href={socialLinks.instagram} target="_blank">
               <DisplayImg src={darkMode ? linkDarkModeIcon : linkIcon} />
               {en ? 'view' : 'عرض'}
             </a>
