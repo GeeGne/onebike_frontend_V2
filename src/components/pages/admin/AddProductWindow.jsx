@@ -40,20 +40,24 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
     queryKey: ['proudcts'],
     queryFn: getAllProducts
   });
+
   const newProductMutation = useMutation({
     mutationFn: createProduct,
-    onSuccess: () => {
+    onMutate: () => {
+      setActivity(true); 
+    },
+    onSettled: () => {
       setActivity(false); 
+      setNewAlert(Math.random());
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       clearInputs();
       toggleData(' hide');
       setAlertText(en ? 'Success! new Product is added to the cloud' : 'تم اضافه منتج جديد  بنجاج!') 
-      setNewAlert(Math.random());
     },
     onError: () => {
-      setActivity(false); 
       setAlertText(en ? 'Error adding new product' : 'حصل خطأ في اضافه المنتج')
-      setNewAlert(Math.random());
     }
   })
   // const { user, userData, setRefreshProducts } = useDataStore();
@@ -179,7 +183,6 @@ function AddProductWindow ({toggle, toggleData, darkMode, lan}) {
             ? ''
             : brandInptEL.current.dataset.key || '',
         }
-        setActivity(true);
         newProductMutation.mutate({ productData, productImage: imgFile.current });
         break;
       default:

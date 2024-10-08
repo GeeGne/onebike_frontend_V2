@@ -1,6 +1,7 @@
 // HOOKS
-import React, {useState, useEffect} from 'react';
-import {Helmet} from 'react-helmet-async';
+import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useQuery } from 'react-query';
 
 // COMPONENTS
 import BreadCrumb from '../../BreadCrumb';
@@ -8,6 +9,9 @@ import Controls from './Controls';
 import EmptyList from './EmptyList';
 import AdvertList from './AdvertList';
 import NeedHelp from '../../NeedHelp';
+
+// api
+import getAllProducts from '/src/api/products/getAllProducts';
 
 // SCSS
 import '/src/styles/components/pages/products/Products.scss';
@@ -23,7 +27,12 @@ import { useDataStore } from '/src/store/store';
 
 function Products ({ subject, darkMode, lan }) {
 
-  const { products } = useDataStore();
+  const { data } = useQuery({
+    queryKey: ['products'],
+    queryFn: getAllProducts
+  });
+  const products = data || [];
+
   const pageURL = window.location.href;
   const matchedProducts = products.filter(product => subject.value === 'discount' 
     ? product[subject.value] 
@@ -62,9 +71,9 @@ function Products ({ subject, darkMode, lan }) {
         {totalProducts === 0 
           ? <>
             {/* <EmptyList darkMode={darkMode} lan={lan} productCategoryEN={cleanseString(productCategoryEN)} productCategory={productCategory}/>  */}
-            <EmptyList darkMode={darkMode} lan={lan} subject={subject}/> 
-            <NeedHelp darkMode={darkMode} lan={lan}/></>
-          : <AdvertList darkMode={darkMode} lan={lan} matchedProducts={matchedProducts}/>
+            <EmptyList darkMode={darkMode} lan={lan} subject={subject} /> 
+            <NeedHelp darkMode={darkMode} lan={lan} /></>
+          : <AdvertList darkMode={darkMode} lan={lan} matchedProducts={matchedProducts} products={products} />
         }
       </div>
     </>

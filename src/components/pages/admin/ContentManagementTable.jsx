@@ -56,36 +56,43 @@ function ContentManagementTable ({darkMode, lan}) {
     queryKey: ['user', 'auth', 'profile', 'orders'],
     queryFn: checkAuthAndGetProfile
   });
-
   const deleteProductMutation = useMutation({
     mutationFn: deleteProduct,
+    onMutate: () => {
+      setActivity(true);
+    },
+    onSettled: () => {
+      setActivity(false);
+      setNewAlert(Math.random());
+    },
     onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       styleWhenDeletProduct(data.index);
       setAlertText(en ? 'Success! product is deleted' : 'تم حذف المنتج بنجاح!')
-      setNewAlert(Math.random());
     },
     onError: () => {
       setAlertText(en ? 'Error deleting product' : 'حصل خطأ في حذف المنتج')
-      setNewAlert(Math.random());
     }
-  })
+  });
 
   const updateProductMutation = useMutation({
     mutationFn: updateProduct,
+    onMutate: () => {
+      setActivity(true);
+    },
+    onSettled: () => {
+      setActivity(false);
+      setNewAlert(Math.random());
+    },
     onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       clearInputsAndCloseTab(data.index);
       setAlertText(en ? 'Success! changes has been saved to the product' : 'تم حفظ التغييرات على المنتج بنجاح!')
-      setNewAlert(Math.random());
-      setActivity(false);
     },
     onError: () => {
       setAlertText(en ? 'Error updaing product' : 'حصل خطأ في تعديل المنتج')
-      setNewAlert(Math.random());
-      setActivity(false);
     }
-  })
+  });
 
   // const { user, userData, products, setRefreshProducts } = useDataStore();
   const [ typeItmArray, setTypeItmArray ] = useState([]);
@@ -148,9 +155,9 @@ function ContentManagementTable ({darkMode, lan}) {
     }
   }
 
-  const renderLoadingState = textContent => {
+  const renderLoadingState = (textContent, boolean) => {
     if (activity) {
-      return <ProgressActivity darkMode={darkMode} invert={true} />
+      return <ProgressActivity darkMode={darkMode} invert={boolean} />
     } else {
       return textContent;
     }
@@ -197,7 +204,6 @@ function ContentManagementTable ({darkMode, lan}) {
       findElement(itemELRefs.current).style.overflow = 'hidden';
     }
   }
-
 
   const styleWhenDeletProduct = async index => {
 
@@ -284,8 +290,6 @@ function ContentManagementTable ({darkMode, lan}) {
             : Number(findElement(discountInptELRefs.current).value) || getProduct().discount,
         }
         const img = findElement(imgInptELRefs.current).files[0] || false;
-
-        setActivity(true);
         updateProductMutation.mutate({ productData, img, index });
         break;
       case 'window_wrapper_is_clicked':
@@ -364,7 +368,7 @@ function ContentManagementTable ({darkMode, lan}) {
           <h2 className="cm__delete-window__wrapper__title">{en ? 'User confirmation Needed' : 'مطلوب تأكيد المستخدم'}</h2>
           <span className="cm__delete-window__wrapper__description">{`${en ? 'Delete' : 'مسح'} "${deleteWindow.productId && getProduct(deleteWindow.productId)[en ? 'title_en' : 'title_ar']}" ${en ? '?' : '؟'}`}</span>
           <button className="cm__delete-window__wrapper__cancel-btn" data-action="cancel_window_button_is_clicked" onClick={handleClick}>{en ? 'Cancel' : 'الغاء'}</button>
-          <button className="cm__delete-window__wrapper__delete-btn" data-product-id={deleteWindow.productId} data-index={deleteWindow.index} data-action="delete_window_button_is_clicked" onClick={handleClick}>{en ? 'Delete' : 'مسح'}</button>          
+          <button className="cm__delete-window__wrapper__delete-btn" data-product-id={deleteWindow.productId} data-index={deleteWindow.index} data-action="delete_window_button_is_clicked" onClick={handleClick}>{renderLoadingState(en ? 'Delete' : 'مسح', false)}</button>          
         </div>
       </div>
       <div className="cm__header-row">
@@ -380,8 +384,8 @@ function ContentManagementTable ({darkMode, lan}) {
           <div className="cm__lst__itm__info-cont" data-index={i} ref={el => itemInfoELRefs.current[i] = el}>
             <div className="cm__lst__itm__info-cont__name-cont">
               <div className={`cm__lst__itm__info-cont__name-cont__state${getColorForState(item.state)}`} />
-              {/* <DisplayWebImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" refresh={products} /> */}
-              <DisplayImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" />
+              <DisplayWebImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" refresh={products} />
+              {/* <DisplayImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" /> */}
               <span className="cm__lst__itm__info-cont__name-cont__title">{en ? item.title_en : item.title_ar}</span>
             </div>
             <div className="cm__lst__itm__info-cont__id-cont">
@@ -453,7 +457,7 @@ function ContentManagementTable ({darkMode, lan}) {
                 {addTypeItmtHTML(i)}
               </ul>
             </div>
-            <button className="cm__lst__itm__edit-cont__save-btn" data-index={i} data-action="save_button_is_clicked" data-product-id={item.id} onClick={handleClick}>{renderLoadingState(en ? 'Save' : 'حفظ')}</button>
+            <button className="cm__lst__itm__edit-cont__save-btn" data-index={i} data-action="save_button_is_clicked" data-product-id={item.id} onClick={handleClick}>{renderLoadingState(en ? 'Save' : 'حفظ', true)}</button>
           </div>
         </li>
         )}

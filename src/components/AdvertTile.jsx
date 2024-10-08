@@ -1,16 +1,20 @@
 // HOOKS
-import React, {useState, useEffect, useRef} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from 'react-query';
 
 // COMPONENTS
 import DisplayWebImg from '/src/components/DisplayWebImg';
 import Alert from '/src/components/Alert';
 
 // STORE
-import {useWishlistStore, useCartStore, useDataStore} from '/src/store/store';
+import { useWishlistStore, useCartStore, useDataStore } from '/src/store/store';
 
 // SCSS
 import '/src/styles/components/AdvertTile.scss';
+
+// api
+import getAllProducts from '/src/api/products/getAllProducts';
 
 // DATA
 // import products from '/src/data/products.json';
@@ -33,8 +37,15 @@ import heartDarkMode from '/assets/img/icons/heart_darkMode.svg';
 
 function AdvertTile ({darkMode, lan, type}) {
   
+  const { data } = useQuery({
+    queryKey: ['products'],
+    queryFn: getAllProducts
+  });
+  
+  const products = data || [];
+
   const { addProductToCart, removedProductFromCart } = useCartStore();
-  const { products } = useDataStore();
+  // const { products } = useDataStore();
   const { wishlist, addProductToWishlist, removeProductFromWishlist } = useWishlistStore();
   const [ newAlert, setNewAlert ] = useState(0);
   const [ alertText, setAlertText ] = useState(null);
@@ -48,8 +59,8 @@ function AdvertTile ({darkMode, lan, type}) {
   const navigate = useNavigate();  
   const en = lan === "en";
   const nowStyle = {color: "var(--primary-color)"}
-  const getProductImgURL = product => `/assets/img/products/${product.id}/main.webp`;
-  const getProductBrandURL = product => `/assets/img/brands/${product.brand}${darkMode ? '_darkMode' : ''}.svg`;
+  const getProductImgURL = product => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/products/${product.id}/${product.face}_${product.color}.webp`;
+  const getProductBrandURL = product => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/brands/${product.brand}${darkMode ? '_darkMode' : ''}.svg`;
   const getProductPrice = product => formatNumberWithCommas(calculatePrice(product.price, product.discount));
   const isProductInWishlist = product => wishlist.some(item => item.id === product.id);
 
@@ -159,6 +170,8 @@ function AdvertTile ({darkMode, lan, type}) {
     }
   }
 
+  // console.log('products: ', products);
+
   return (
     <section className="advertTile">
       <Alert alertText={alertText} newAlert={newAlert} />
@@ -172,42 +185,43 @@ function AdvertTile ({darkMode, lan, type}) {
         <button className="advertTile__list__right-arr-btn" aria-label="Right Arrow" data-action="scroll_right" onClick={handleClick}></button>
         <ul className="advertTile__list__products" ref={listEL}>
           {isProductsLoaded 
-          ? getProducts.map((product, i) => 
-          <li className={`advertTile__list__products__product --slide-to-left${product.state === 'out-of-stock' ? ' out-of-stock' : ''}`} key={product.id} ref={el => productContRefs.current[i] = el}>
-            {isProductInWishlist(product) 
-            ? <button className="advertTile__list__products__product__heart-btn added-to-wishlist" aria-label="Remove product from wishlist" data-action="remove_product_from_wishlist" data-product-id={product.id} onClick={handleClick} />
-            : <button className="advertTile__list__products__product__heart-btn" aria-label="Add product to wishlist" data-action="add_product_to_wishlist" data-product-id={product.id} onClick={handleClick} />
-            }
-            <DisplayWebImg className="advertTile__list__products__product__img" src={getProductImgURL(product)} alt={product.title[lan]} loading={i <= 3 ? "eager" : "lazy"} fetchpriority={i <= 3 ? "high" : ""} />
-            {!product.discount || 
-              <div className="advertTile__list__products__product__discount">{lan === 'ar' ? 'خصم ' : ''}{calculateDiscountPercantage(product.price, product.discount)}{en ? ' off' : ''}</div>
-            }
-            <h3 className="advertTile__list__products__product__description">{product.title[lan]}</h3>
-            {product.brand && 
-              <DisplayWebImg className="advertTile__list__products__product__brand-img" alt={capitalizeFirstLetter(product.brand) + ' Logo'} loading="lazy" src={getProductBrandURL(product)}/>
-            }
-            <div className="advertTile__list__products__product__price">
-              {product.discount 
-              ? <> <span className="now" style={nowStyle}>{en ? 'NOW' : 'الان'}</span> 
-              <span className="total">{getProductPrice(product)}</span>
-              <span className="currency-symbol">{en ? 'S.P ' : 'ل.س'}</span>
-              <s className='old'>{formatNumberWithCommas(product.price)}</s></>
-              : <><span className="total">{getProductPrice(product)}</span> 
-              <span className="currency-symbol">{en ? 'S.P' : 'ل.س'}</span>
-              </>}
-            </div>
-            <button className="advertTile__list__products__product__add-btn" data-action="add_to_cart" data-product-id={product.id} onClick={handleClick}>{en ? 'Add to cart' : 'اضف الى السله'}</button>
-          </li>      
-          )
-          : displayBlocks.map((num, i) => 
-          <li className="advertTile__list__products__product empty --panel-flick" key={num} ref={el => productContRefs.current[i] = el}>
-            <div className="advertTile__list__products__product__heart-btn" />
-            <div className="advertTile__list__products__product__img" />
-            <div className="advertTile__list__products__product__description" />
-            <div className="advertTile__list__products__product__price" />
-            <div className="advertTile__list__products__product__add-btn" />
-          </li>   
-          )}
+            ? getProducts.map((product, i) => 
+              <li className={`advertTile__list__products__product --slide-to-left${product.state === 'out-of-stock' ? ' out-of-stock' : ''}`} key={product.id} ref={el => productContRefs.current[i] = el}>
+                {isProductInWishlist(product) 
+                ? <button className="advertTile__list__products__product__heart-btn added-to-wishlist" aria-label="Remove product from wishlist" data-action="remove_product_from_wishlist" data-product-id={product.id} onClick={handleClick} />
+                : <button className="advertTile__list__products__product__heart-btn" aria-label="Add product to wishlist" data-action="add_product_to_wishlist" data-product-id={product.id} onClick={handleClick} />
+                }
+                <DisplayWebImg className="advertTile__list__products__product__img" src={getProductImgURL(product)} alt={product[en ? 'title_en' : 'title_ar' ]} loading={i <= 3 ? "eager" : "lazy"} fetchpriority={i <= 3 ? "high" : ""} />
+                {!product.discount || 
+                  <div className="advertTile__list__products__product__discount">{lan === 'ar' ? 'خصم ' : ''}{calculateDiscountPercantage(product.price, product.discount)}{en ? ' off' : ''}</div>
+                }
+                <h3 className="advertTile__list__products__product__description">{product[en ? 'title_en' : 'title_ar' ]}</h3>
+                {product.brand && 
+                  <DisplayWebImg className="advertTile__list__products__product__brand-img" alt={capitalizeFirstLetter(product.brand) + ' Logo'} loading="lazy" src={getProductBrandURL(product)}/>
+                }
+                <div className="advertTile__list__products__product__price">
+                  {product.discount 
+                    ? <> <span className="now" style={nowStyle}>{en ? 'NOW' : 'الان'}</span> 
+                    <span className="total">{getProductPrice(product)}</span>
+                    <span className="currency-symbol">{en ? 'S.P ' : 'ل.س'}</span>
+                    <s className='old'>{formatNumberWithCommas(product.price)}</s></>
+                    : <><span className="total">{getProductPrice(product)}</span> 
+                    <span className="currency-symbol">{en ? 'S.P' : 'ل.س'}</span></>
+                  }
+                </div>
+                <button className="advertTile__list__products__product__add-btn" data-action="add_to_cart" data-product-id={product.id} onClick={handleClick}>{en ? 'Add to cart' : 'اضف الى السله'}</button>
+              </li>      
+            )
+            : displayBlocks.map((num, i) => 
+              <li className="advertTile__list__products__product empty --panel-flick" key={num} ref={el => productContRefs.current[i] = el}>
+                <div className="advertTile__list__products__product__heart-btn" />
+                <div className="advertTile__list__products__product__img" />
+                <div className="advertTile__list__products__product__description" />
+                <div className="advertTile__list__products__product__price" />
+                <div className="advertTile__list__products__product__add-btn" />
+              </li>   
+            )
+          }
         </ul>
       </div>
     </section>

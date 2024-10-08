@@ -4,11 +4,10 @@ import emptyImgURL from '/assets/img/empty/empty.webp';
 
 async function createProduct ({ productData, productImage }) {
   try {
-    // add new product to db
-
+    // Add new product to db
     const uri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/products`;
     const response = await fetch(uri, {
-      method: 'PUT',
+      method: 'POST',
       headers: { "Content-Type": "application/json" },
       credentials: 'include',
       body: JSON.stringify(productData)
@@ -20,9 +19,9 @@ async function createProduct ({ productData, productImage }) {
     const result = await response.json();
 
     // upload new product image to storage
-    const uploadImg =  productImage || await fetchEmptyImgAsBlob(emptyImgURL)
+    const uploadImg = productImage || await fetchEmptyImgAsBlob(emptyImgURL);
     const body = new FormData();
-    body.append('file', uploadImg);
+    body.append('file', uploadImg, `${result.productId}.webp`);
     const uploadUri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/uploads/products/${result.productId}/${productData.face}/${productData.color}`;
     const response1 = await fetch(uploadUri, {
       method: 'POST',

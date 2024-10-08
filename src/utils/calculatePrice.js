@@ -9,7 +9,7 @@ function calculatePrice (price, discount) {
     case 'boolean':
       return price;
     default:
-      console.log('Unknown type:' + type);
+      console.log('Unknown typeOf:' + typeof(discount));
   }
 }
 

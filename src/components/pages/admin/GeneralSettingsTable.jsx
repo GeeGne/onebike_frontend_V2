@@ -291,9 +291,9 @@ function GeneralSettingsTable ({darkMode, lan}) {
     }
   }
 
-  console.log({banners});
-  console.log('social Links: ', socialLinks);
-  console.log('editSiteDetails: ', editSiteDetails);
+  // console.log({banners});
+  // console.log('social Links: ', socialLinks);
+  // console.log('editSiteDetails: ', editSiteDetails);
 
   return (
     <div className="gs">

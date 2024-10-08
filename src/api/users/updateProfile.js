@@ -1,6 +1,6 @@
 async function updateProfile ({ profileData, userId, newProfile}) {
   try {
-    const uri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/user/profile/${userId}`
+    const uri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/user/profile/${userId}`;
     const response = await fetch(uri, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -11,7 +11,6 @@ async function updateProfile ({ profileData, userId, newProfile}) {
 
     const updatedUser = await response.json();
     if (!updatedUser) ('unknown error has accured');
-
 
     // Upload new profile if there's
     if (newProfile) {
