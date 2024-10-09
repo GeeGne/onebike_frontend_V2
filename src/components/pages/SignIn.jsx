@@ -30,7 +30,6 @@ import Redirector from '/src/utils/Redirector';
 
 function SignIn ({darkMode, lan}) {
 
-
   const pageURL = window.location.href;
   const siteName = "ONEBIKE";
   const pageHeadTitle = "Sign In - ONEBIKE";
@@ -45,27 +44,31 @@ function SignIn ({darkMode, lan}) {
   const {headToCheckouts, setHeadToCheckouts} = useOrderStore();
 
   const { data: user } = useQuery({
-    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryKey: ['user'],
     queryFn: checkAuthAndGetProfile,
     onSuccess: () => { 
-      setProcessing(false);
       setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
     },
     onError: () => {
       setAlertText(err.message);
       setNewAlert(Math.random());
-      setProcessing(false);
     }
   });
-  console.log('user: ', user);
 
   const signinMutation = useMutation({
     mutationFn: signin,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', 'auth', 'profile', 'orders']}),
+    onMutate: () => {
+      setProcessing(true);
+    },
+    onSettled: () => {
+      setProcessing(false);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user']})
+    },
     onError: err => {
       setAlertText(err.message);
       setNewAlert(Math.random());
-      setProcessing(false);
     }
   });
 
@@ -221,6 +224,8 @@ function SignIn ({darkMode, lan}) {
         return text;
     }
   }
+
+  // console.log('user: ', user);
 
   return (
     <>

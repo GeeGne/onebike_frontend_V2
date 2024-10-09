@@ -37,10 +37,6 @@ import callPlusFillIconDarkMode from '/assets/img/icons/call_plus_fill_darkMode.
 
 function IntroSection ({onThemeChange, onLanguageChange}) {
  
-  // const { data: { result: socialLinks } } = useQuery({
-  //   queryKey: ['socialLinks'],
-  //   queryFn: getSocialLinks
-  // });
   const { data } = useQuery({
     queryKey: ['socialLinks'],
     queryFn: getSocialLinks

@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import useFetchAuth from '/src/hooks/useFetchAuth';
 // import useFetchUserData from '/src/hooks/useFetchUserData';
+import useClearInvalidProducts from '/src/hooks/useClearInvalidProducts';
 import useFetchProductsData from '/src/hooks/useFetchProductsData';
 import useFetchRolesData from '/src/hooks/useFetchRolesData';
 import useFetchHomePageBannersData from '/src/hooks/useFetchHomePageBannersData';
@@ -57,6 +58,8 @@ function App () {
 
   const [darkMode, setDarkMode] = useState(false);
   const [lan, setLanguage] = useState('en');
+
+  useClearInvalidProducts();
   // useFetchAuth(); 
   // useFetchProductsData();
   // useFetchUserData();

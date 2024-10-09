@@ -1,6 +1,7 @@
 // HOOKS
-import React, {useState, useRef, useEffect, Suspense} from 'react';
-import {useNavigate, useSearchParams, Link} from 'react-router-dom';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useQuery } from 'react-query';
 
 // COMPONENTS
 const HamMenu = React.lazy(() => import('./HamMenu'));
@@ -12,6 +13,9 @@ import DisplayWebImg from '/src/components/DisplayWebImg';
 
 // REDUCERS
 import cartReducer from '/src/reducers/cartReducer.js';
+
+// api
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
 
 // STORE
 import {useWishlistStore, useCartStore, useDataStore} from '/src/store/store';
@@ -28,14 +32,14 @@ import userIconDarkMode from '/assets/img/icons/user_darkMode.svg';
 
 function Navbar ({darkMode, lan}) {
   
-  const navigate = useNavigate();
+  const { data: user } = useQuery(['user'], checkAuthAndGetProfile);
+    const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
   const [search, setSearch] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   // const [cartToggle, setCartToggle] = useState(false);
   const {cart, toggle: cartToggle, setToggle: setCartToggle} = useCartStore();
   const {wishlist, setToggle: setWishlistToggle} = useWishlistStore();
-  const { user, userData, setRefreshProducts } = useDataStore();
 
   const navDropMenuEL = useRef(null);
   const prevScrollY = useRef(0);
@@ -53,7 +57,7 @@ function Navbar ({darkMode, lan}) {
   const largeWidth = 1000;
   const webWidth = window.innerWidth;
   const desktopWidth = webWidth >= largeWidth;
-  const getUserImgURL = () => `/assets/img/userpfp/${user?.uid}/main.webp`;
+  const getProfileImgURL = () => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/profiles/${user?.id}.webp`;
 
   useEffect(() => {
     const handleResize = (menu) => {
@@ -133,11 +137,9 @@ function Navbar ({darkMode, lan}) {
         }
         break;
       case 'toggle_wishlist_to_true':
-        setRefreshProducts(Math.random());
         setWishlistToggle(true);
         break;
       case 'toggle_cart_to_true':
-        setRefreshProducts(Math.random());
         setCartToggle(true);
         break;
       case 'navigate_to_path':
@@ -166,6 +168,8 @@ function Navbar ({darkMode, lan}) {
     setSearchParams({search: searchValue})
   }
 
+  // console.log('navbar', user);
+
   return (
     <>
     <div className="dropMenu --fade-in animate--05s delay--03s iteration--1" ref={navDropMenuEL}>
@@ -180,7 +184,7 @@ function Navbar ({darkMode, lan}) {
         </div>
         <button className="dropMenu__nav__search" aria-label="Search on a product" data-action="toggle_search" onClick={handleClick} /* onMouseEnter={() => handleHover(true)} onMouseLeave={() => handleHover(false)} */ ref={searchBtnEL}/>
         <Link className="dropMenu__nav__user" to={user ? "/account" : "/account/login"} role="button" tabIndex="0" aria-label="head to your account">
-          <DisplayWebImg className="dropMenu__nav__user__img" src={getUserImgURL()} backup={darkMode ? userIconDarkMode : userIcon} refresh={userData} />
+          <DisplayWebImg className="dropMenu__nav__user__img" src={getProfileImgURL()} backup={darkMode ? userIconDarkMode : userIcon} refresh={user} />
         </Link>
         <button className={`dropMenu__nav__favourite${isWishlistEmpty ? ' empty' : ''}`} aria-label="Open favorite tab" data-action="toggle_wishlist_to_true" onClick={handleClick} ref={favouriteBtnEL}/>
         <button className={`dropMenu__nav__shoppingCart${isCartEmpty ? ' empty' : ''}`} aria-label="Open shoppingcart tab" data-action="toggle_cart_to_true" onClick={handleClick} ref={cartBtnEL}/>

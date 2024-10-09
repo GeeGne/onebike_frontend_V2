@@ -11,7 +11,6 @@ async function signout () {
     }
 
     const result = await response.json();
-    setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500);
     return result;
   } catch (err) {
     console.error('Error while removed jwt token: ', err);

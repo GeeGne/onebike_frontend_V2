@@ -1,5 +1,5 @@
 // HOOKS
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 // COMPONENTS
 import DisplayWebImg from '/src/components/DisplayWebImg';
@@ -11,8 +11,11 @@ import '/src/styles/components/pages/checkout/OrderSummary.scss';
 import formatNumberWithCommas from '/src/utils/formatNumberWithCommas';
 
 function OrderSummary ({darkMode, lan, order, hidePrices}) {
+  
   const {products, shippingCost, total, subtotal} = order;
   const en = lan === 'en';
+
+  const getProductImgURL = product => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/products/${product.id}/${product.face}_${product.color}.webp`;
 
   return (
     <div className={`orderSummary${hidePrices ? ' hidePrices' : ''}`}>
@@ -20,10 +23,10 @@ function OrderSummary ({darkMode, lan, order, hidePrices}) {
         {products.map(item => 
         <li className="orderSummary__products__product" key={item.id}>
           <div className="orderSummary__products__product__img-quan">
-            <DisplayWebImg className="orderSummary__products__product__img-quan__img" src={`/assets/img/products/${item.id}/main.webp`} />
+            <DisplayWebImg className="orderSummary__products__product__img-quan__img" src={getProductImgURL(item.product)} refresh={products} />
             <div className="orderSummary__products__product__img-quan__quan">{item.quantity}</div>
           </div>
-          <span className="orderSummary__products__product__description">{item.product.title[lan]}</span>
+          <span className="orderSummary__products__product__description">{item.product[en ? 'title_en' : 'title_ar']}</span>
           <span className="orderSummary__products__product__price">{en ? 'S.P ' : ' ل.س '}{formatNumberWithCommas(item.quantityPrice)}</span>
         </li>
         )}

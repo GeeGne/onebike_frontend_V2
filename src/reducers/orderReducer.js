@@ -1,5 +1,8 @@
 function orderReducer(order, action) {
-  const {type, cart, city, shippingCost, phone, addressDetails, secondAddress, notes, user, userData} = action
+  const { type, cart, city, 
+    shippingCost, phone, addressDetails, 
+    secondAddress, notes, user 
+  } = action
 
   const calculateTotal = () => {
     let total = 0;
@@ -13,16 +16,16 @@ function orderReducer(order, action) {
     case 'update_costumer':
       return {...order, 
         costumer: {...order.costumer, 
-          costumerId: userData?.userId || '',
-          fullName: userData?.fullName || '',
-          email: userData?.email || '',
-          phone: userData?.phone | ''
+          costumerId: user?.userId || '',
+          fullName: user?.fullName || '',
+          email: user?.email || '',
+          phone: user?.phone | ''
         },
         shippingAddress: {...order.shippingAddress,
-          addressDetails: userData?.addressDetails || '',
-          secondAddress: userData?.secondAddress || '',
+          addressDetails: user?.addressDetails || '',
+          secondAddress: user?.secondAddress || '',
         },
-        notes: userData?.notes || ''
+        notes: user?.notes || ''
       }      
     case 'update_shipping_fee_and_inp':
       return {...order, shippingCost, shippingAddress: {...order.shippingAddress, city}, total: order.subtotal + shippingCost};

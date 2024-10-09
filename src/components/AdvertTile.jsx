@@ -43,9 +43,7 @@ function AdvertTile ({darkMode, lan, type}) {
   });
   
   const products = data || [];
-
   const { addProductToCart, removedProductFromCart } = useCartStore();
-  // const { products } = useDataStore();
   const { wishlist, addProductToWishlist, removeProductFromWishlist } = useWishlistStore();
   const [ newAlert, setNewAlert ] = useState(0);
   const [ alertText, setAlertText ] = useState(null);
@@ -113,7 +111,7 @@ function AdvertTile ({darkMode, lan, type}) {
     const productConWidth = productContRefs.current[0].offsetWidth;
     const fontSize = window.getComputedStyle(productContRefs.current[0], null).getPropertyValue('font-size');
     const gapLength = parseFloat(fontSize);
-    const getProduct = id => products.filter(product => product.id === id)[0];
+    const getProduct = id => products.find(product => product.id === id);
 
     const getURL = () => {
       switch (categoryType) {
@@ -140,7 +138,7 @@ function AdvertTile ({darkMode, lan, type}) {
         listEL.current.scrollBy({left: productConWidth + gapLength, behavior: "smooth"});
         break;
       case 'add_product_to_wishlist':
-        setAlertText(`${en ? '' : 'تم اضافه'} ${getProduct(productId).title[lan]} ${en ? 'is added to Wishlist!' : 'الى المفضله!'}`);
+        setAlertText(`${en ? '' : 'تم اضافه'} ${getProduct(productId)[en ? 'title_en' : 'title_ar']} ${en ? 'is added to Wishlist!' : 'الى المفضله!'}`);
         setNewAlert(Math.random());
         e.target.style.opacity = '0';
         clearTimeout(addTimerID.current);
@@ -150,7 +148,7 @@ function AdvertTile ({darkMode, lan, type}) {
         }, 250);
         break;
       case 'remove_product_from_wishlist':
-        setAlertText(`${en ? '' : 'تم ازاله'} ${getProduct(productId).title[lan]} ${en ? 'is removed from Wishlist!' : 'من المفضله!'}`);
+        setAlertText(`${en ? '' : 'تم ازاله'} ${getProduct(productId)[en ? 'title_en' : 'title_ar']} ${en ? 'is removed from Wishlist!' : 'من المفضله!'}`);
         setNewAlert(Math.random());
         e.target.style.opacity = '0';
         clearTimeout(removeTimerID.current);
@@ -162,7 +160,7 @@ function AdvertTile ({darkMode, lan, type}) {
       case 'add_to_cart':
         const amount = 1;
         addProductToCart(getProduct(productId), amount);
-        setAlertText(`${en ? '' : 'تم اضافه'} ${getProduct(productId).title[lan]} ${en ? 'is added to Cart!' : 'الى السله!'}`);
+        setAlertText(`${en ? '' : 'تم اضافه'} ${getProduct(productId)[en ? 'title_en' : 'title_ar']} ${en ? 'is added to Cart!' : 'الى السله!'}`);
         setNewAlert(Math.random());
         break;
       default:

@@ -1,12 +1,17 @@
 // HOOKS
-import React, {useState, useEffect, useRef, useContext, useReducer} from 'react';
-import {useNavigate} from 'react-router-dom';
+import React, { useState, useEffect, useRef, useContext, useReducer } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from 'react-query';
 
 // COMPONETNS
 import DisplayWebImg from '/src/components/DisplayWebImg';
 
 // SCSS
 import '/src/styles/components/header/navbar/CartSlider.scss';
+
+// API
+import getAllProducts from '/src/api/products/getAllProducts';
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
 
 // STORES
 import {useCartStore, useOrderStore, useDataStore} from '/src/store/store';
@@ -30,6 +35,11 @@ import cartIconDarkMode from '/assets/img/icons/shopping_cart_darkMode.svg';
 
 function CartSlider ({darkMode, lan}) {
 
+  const { data: productData } = useQuery(['products'], getAllProducts);
+  const products = productData || [];
+
+  const { data: user } = useQuery(['user'], checkAuthAndGetProfile);
+
   const {
     cart, 
     toggle: cartToggle, 
@@ -39,7 +49,6 @@ function CartSlider ({darkMode, lan}) {
   } = useCartStore();
   const setHeadToCheckouts = useOrderStore(state => state.setHeadToCheckouts);
   const headToCheckouts = useOrderStore(state => state.headToCheckouts);
-  const { user, products } = useDataStore();
   const cartContainerElement = useRef(null);  
   const sliderElement = useRef(null);
   const cartProductsELS = useRef([]);
@@ -51,8 +60,8 @@ function CartSlider ({darkMode, lan}) {
 
   let totalPrice = 0;
   cart.forEach(list => (totalPrice += list.quantityPrice));
-  const getProductImgURL = product => `/assets/img/products/${product.id}/main.webp`;
-  const getProduct = id => products.filter(product => product.id === id)[0];
+  const getProductImgURL = product => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/products/${product.id}/${product.face}_${product.color}.webp`;
+  const getProduct = id => products.find(product => product.id === id);
 
   useEffect(() => {
     const containerStyle = cartContainerElement.current.style;
@@ -144,8 +153,8 @@ function CartSlider ({darkMode, lan}) {
         <ul className="cartSlider__slider__products">
           {cart.map((list, i) =>
           <li className="cartSlider__slider__products__product" key={list.id} data-product-id={list.product.id} ref={el => addRef('cartProductsELS', el, i)}>
-            <DisplayWebImg className="cartSlider__slider__products__product__image" src={getProductImgURL(list.product)} alt={list.product.title[lan]} loading={i <= 3 ? "eager" : "lazy"} fetchpriority={i <= 3 ? "high" : ""} />
-            <a className="cartSlider__slider__products__product__title">{list.product.title[lan]}</a>
+            <DisplayWebImg className="cartSlider__slider__products__product__image" src={getProductImgURL(list.product)} alt={list.product[en ? 'title_en' : 'title_ar']} loading={i <= 3 ? "eager" : "lazy"} fetchpriority={i <= 3 ? "high" : ""} />
+            <a className="cartSlider__slider__products__product__title">{list.product[en ? 'title_en' : 'title_ar']}</a>
             <div className="cartSlider__slider__products__product__price">{en ? 'S.P' : 'ل.س'} {formatNumberWithCommas(list.quantityPrice)}</div>
             <div className="cartSlider__slider__products__product__toggles">
               <button className="cartSlider__slider__products__product__toggles__delete" data-type="remove_from_cart" data-product-id={list.id} onClick={handleClick} /> 

@@ -53,29 +53,32 @@ function Account ({ darkMode, lan }) {
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
-    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryKey: ['user'],
     queryFn: checkAuthAndGetProfile,
     onSuccess: () => setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500)
-  })
-  console.log('account', user);
+  });
+
   const signoutMutation = useMutation({
     mutationFn: signout,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user', 'auth', 'profile', 'orders'] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['user'] })
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: updateProfile,
-    onSuccess: () => {
+    onMutate: () => {
+      setActivity(true);  
+    },
+    onSettled: () => {
       setActivity(false);  
-      dispatch({ type: 'user_data_is_updated' });
       setNewAlert(Math.random());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      dispatch({ type: 'user_data_is_updated' });
       setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')  
-      queryClient.invalidateQueries({ queryKey: ['user', 'auth', 'profile', 'orders'] });
     },
     onError: () => {
-      setActivity(false);  
       setAlertText(en ? 'Error updating Persoanl Data' : 'خطأ في تحديث البيانات الشخصية')
-      setNewAlert(Math.random());
     }
   });
 
@@ -287,8 +290,8 @@ function Account ({ darkMode, lan }) {
           <button className="account__banner__editPersonalDetails-btn" data-action="edit_profile_btn_is_clicked" onClick={handleClick} />
           <div className="account__banner__pfp">
             <DisplayImg className="account__banner__pfp__default-img" src={darkMode ? personIcon : personDarkModeIcon} />
-            {/* <DisplayWebImg className="account__banner__pfp__user-img" src={getProfileImgURL()} backup={false} refresh={user} /> */}
-            <DisplayImg className="account__banner__pfp__user-img" src={getProfileImgURL()} />
+            <DisplayWebImg className="account__banner__pfp__user-img" src={getProfileImgURL()} backup={false} refresh={user} />
+            {/* <DisplayImg className="account__banner__pfp__user-img" src={getProfileImgURL()} /> */}
           </div>
         </section>
 

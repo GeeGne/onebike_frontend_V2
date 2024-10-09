@@ -1,11 +1,10 @@
 // HOOKS
-import React, {useState, useRef, useEffect, useContext, useReducer} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {Helmet} from 'react-helmet-async';
+import React, { useState, useRef, useEffect, useContext, useReducer } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { useQuery } from 'react-query';
 
 // FIREBASE
-import {auth} from '/src/firebase/authSignUp.js';
-import {signInWithEmailAndPassword, onAuthStateChanged} from "firebase/auth";
 import {db} from '/src/firebase/fireStore';
 import {setDoc, updateDoc, getDoc, doc} from 'firebase/firestore';
 
@@ -20,6 +19,9 @@ import oneBike, {citiesAndShippingFee, emailJS} from '/src/data/one-bike.json';
 
 // SCSS
 import '/src/styles/components/pages/checkout/Checkout.scss';
+
+// api
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
 
 // STORE
 import {useCartStore, useOrderStore, useDataStore} from '/src/store/store';
@@ -64,7 +66,9 @@ function Checkout ({darkMode, lan}) {
   emailjs.init({publicKey: emailJS.publicKey});
   const navigate = useNavigate();
 
-  const { user, userData, setRefreshUserData } = useDataStore();
+  const { data: user } = useQuery(['user'], checkAuthAndGetProfile);
+
+  // const { user, setRefreshUserData } = useDataStore();
   const [ processing, setProcessing ] = useState(false);
   const [ newAlert, setNewAlert ] = useState(0);
   const [ alertText, setAlertText ] = useState(null);
@@ -142,27 +146,27 @@ function Checkout ({darkMode, lan}) {
   const isInputDefault = useRef(true);
 
   // console.log({orderState});
-  // console.log({user, userData, order});
+  // console.log({user, user, order});
   useEffect(() => redirect.checkout(user), [user]);
   useEffect(() => {
-    dispatch({type: 'update_costumer', userData})
+    dispatch({type: 'update_costumer', user})
     
-    if (userData?.addressDetails) {
+    if (user?.addressDetails) {
       addressDetailsInpEL.current.focus();
-      addressDetailsInpEL.current.value = userData?.addressDetails;
+      addressDetailsInpEL.current.value = user?.addressDetails;
     }
 
-    if (userData?.secondAddress) {
+    if (user?.secondAddress) {
       secondAddressInpEL.current.focus();
-      secondAddressInpEL.current.value = userData?.secondAddress;
+      secondAddressInpEL.current.value = user?.secondAddress;
     }
 
-    if (userData?.notes) {
+    if (user?.notes) {
       notesInpEL.current.focus();
-      notesInpEL.current.value = userData?.notes;
+      notesInpEL.current.value = user?.notes;
     }
 
-  }, [userData]);
+  }, [user]);
   useEffect(() => dispatch({type: 'update_products', cart}), [cart]);
 
   const deliverInfoTextContent = () => en 
@@ -477,7 +481,7 @@ function Checkout ({darkMode, lan}) {
     switch (name) {
       case 'phoneOptions':
         if (type === 'default_number_is_selected') {
-          phone = userData?.phone;
+          phone = user?.phone;
           dispatch({type, phone});
           phoneSecEL.current.classList.remove('error');
           phoneSecEL.current.classList.remove('error-noDescription');
@@ -591,7 +595,7 @@ function Checkout ({darkMode, lan}) {
             <label className="checkout__phone-sec__radio-cont__lbl" htmlFor="existed-number">
               <span className="checkout__phone-sec__radio-cont__lbl__txt">{en ? 'Use the Number from your personal account' : 'استخدم رقم الهاتف من حسابك الشخصي'}</span>
               <div className="checkout__phone-sec__radio-cont__lbl__phone-popup-cont" >
-                <span className="checkout__phone-sec__radio-cont__lbl__phone-popup-cont__number">{formatPhoneNumber(userData?.phone)}</span>
+                <span className="checkout__phone-sec__radio-cont__lbl__phone-popup-cont__number">{formatPhoneNumber(user?.phone)}</span>
                 <img className="checkout__phone-sec__radio-cont__lbl__phone-popup-cont__img" src={darkMode ? adjustDarkModeIcon : adjustIcon} />
               </div>
             </label>
