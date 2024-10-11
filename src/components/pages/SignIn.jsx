@@ -1,7 +1,7 @@
 // HOOKS
-import React, {useState, useEffect, useRef} from 'react';
-import {Link, useNavigate} from 'react-router-dom';
-import {Helmet} from 'react-helmet-async';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 
 // COMPONENTS
@@ -44,9 +44,9 @@ function SignIn ({darkMode, lan}) {
     onSuccess: () => { 
       setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
     },
-    onError: () => {
-      setAlertText(err.message);
-      setNewAlert(Math.random());
+    onError: (err) => {
+      // setAlertText(err.message);
+      // setNewAlert(Math.random());
     }
   });
 
@@ -116,7 +116,6 @@ function SignIn ({darkMode, lan}) {
       signinMutation.mutate(formData);
     } catch (err) {
       console.error(err.message);
-      setProcessing(false);
     }
   }
 
@@ -205,7 +204,7 @@ function SignIn ({darkMode, lan}) {
     }
   }
 
-  // console.log('user: ', user);
+  console.log('user: ', user);
 
   return (
     <>

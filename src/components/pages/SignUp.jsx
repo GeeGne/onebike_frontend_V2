@@ -61,7 +61,7 @@ function SignUp ({darkMode, lan}) {
   const signupMutation = useMutation({
     mutationFn: signup,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth'] })
+      queryClient.invalidateQueries({ queryKey: ['user'] })
     },
     onError: (err) => {
       setProcessing(false);

@@ -1,17 +1,21 @@
 async function checkAuthAndGetProfile () {
   try {
     const uri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/me`
+    console.log('uri: ', uri);
     const response = await fetch(uri, {
-      method: 'POST',
+      method: 'GET',
       credentials: 'include'
     });
-    if (!response.ok) throw new Error ('no user to auth');
+    if (!response.ok) {
+      const error = response.json();
+      throw new Error (error.messge);
+    };
 
     const user = await response.json();
     return user;
   } catch (err) {
     console.info('note: ', err.message);
-    return false;
+    throw err;
   }
 }
 

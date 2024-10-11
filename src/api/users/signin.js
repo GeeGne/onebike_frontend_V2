@@ -1,8 +1,7 @@
 async function signin (formData) {
-  const {email, password} = formData;
+  const { email, password } = formData;
   try {
     const uri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/signin`;
-    console.log('uri: ', uri);
     const response = await fetch(uri, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
