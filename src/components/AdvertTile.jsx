@@ -37,9 +37,13 @@ import heartDarkMode from '/assets/img/icons/heart_darkMode.svg';
 
 function AdvertTile ({darkMode, lan, type}) {
   
+  const [refreshProductsImg, setRefreshProductImg] = useState(0);
   const { data } = useQuery({
     queryKey: ['products'],
-    queryFn: getAllProducts
+    queryFn: getAllProducts,
+    onSuccess: () => {
+      setRefreshProductImg(Math.random());
+    }
   });
   
   const products = data || [];
@@ -189,7 +193,7 @@ function AdvertTile ({darkMode, lan, type}) {
                 ? <button className="advertTile__list__products__product__heart-btn added-to-wishlist" aria-label="Remove product from wishlist" data-action="remove_product_from_wishlist" data-product-id={product.id} onClick={handleClick} />
                 : <button className="advertTile__list__products__product__heart-btn" aria-label="Add product to wishlist" data-action="add_product_to_wishlist" data-product-id={product.id} onClick={handleClick} />
                 }
-                <DisplayWebImg className="advertTile__list__products__product__img" src={getProductImgURL(product)} alt={product[en ? 'title_en' : 'title_ar' ]} loading={i <= 3 ? "eager" : "lazy"} fetchpriority={i <= 3 ? "high" : ""} />
+                <DisplayWebImg className="advertTile__list__products__product__img" src={getProductImgURL(product)} alt={product[en ? 'title_en' : 'title_ar' ]} loading={i <= 3 ? "eager" : "lazy"} fetchpriority={i <= 3 ? "high" : ""} refresh={refreshProductsImg} />
                 {!product.discount || 
                   <div className="advertTile__list__products__product__discount">{lan === 'ar' ? 'خصم ' : ''}{calculateDiscountPercantage(product.price, product.discount)}{en ? ' off' : ''}</div>
                 }

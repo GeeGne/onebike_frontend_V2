@@ -21,16 +21,6 @@ import useFetchProductsData from '/src/hooks/useFetchProductsData';
 import updateProduct from '/src/api/products/updateProduct';
 import deleteProduct from '/src/api/products/deleteProduct';
 import getAllProducts from '/src/api/products/getAllProducts';
-import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
-
-// STORE
-import { useDataStore } from '/src/store/store';
-
-// FIREBASE
-import { db } from '/src/firebase/fireStore';
-import { getDoc, doc, collection, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { storage } from '/src/firebase/storage';
-import { ref, uploadBytes } from "firebase/storage";
 
 // JSON
 import menu from '/src/data/menu.json';
@@ -43,19 +33,19 @@ import formatNumberWithCommas from '/src/utils/formatNumberWithCommas';
 // REDUCERS
 import deleteWindowReducer from '/src/reducers/deleteWindowReducer';
 
-function ContentManagementTable ({darkMode, lan}) {
+function ContentManagementTable ({ darkMode, lan, user }) {
 
   const queryClient = useQueryClient();
 
+  const [refreshProductsImg, setRefreshProductImg] = useState(0);
   const { data: products } = useQuery({
     queryKey: ['products'],
-    queryFn: getAllProducts
+    queryFn: getAllProducts,
+    onSuccess: () => {
+      setRefreshProductImg(Math.random());
+    }
   })
 
-  const { data: user } = useQuery({
-    queryKey: ['user', 'auth', 'profile', 'orders'],
-    queryFn: checkAuthAndGetProfile
-  });
   const deleteProductMutation = useMutation({
     mutationFn: deleteProduct,
     onMutate: () => {
@@ -384,7 +374,7 @@ function ContentManagementTable ({darkMode, lan}) {
           <div className="cm__lst__itm__info-cont" data-index={i} ref={el => itemInfoELRefs.current[i] = el}>
             <div className="cm__lst__itm__info-cont__name-cont">
               <div className={`cm__lst__itm__info-cont__name-cont__state${getColorForState(item.state)}`} />
-              <DisplayWebImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" refresh={products} />
+              <DisplayWebImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" refresh={refreshProductsImg} />
               {/* <DisplayImg className="cm__lst__itm__info-cont__name-cont__img" src={getProductImgURL(item.id)} alt={item[en ? 'title_en' : 'title_ar']} loading="lazy" /> */}
               <span className="cm__lst__itm__info-cont__name-cont__title">{en ? item.title_en : item.title_ar}</span>
             </div>

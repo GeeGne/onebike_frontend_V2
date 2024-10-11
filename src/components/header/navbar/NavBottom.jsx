@@ -1,16 +1,20 @@
 // HOOKS
-import React, {useState, useRef, useEffect, useContext} from 'react';
-import {useNavigate, Link} from 'react-router-dom';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useQuery } from 'react-query';
 
 // COMPONENTS
 import DisplayWebImg from '/src/components/DisplayWebImg';
 import DisplayImg from '/src/components/DisplayImg';
 
 // STORE
-import { useWishlistStore, useDataStore } from '/src/store/store';
+import { useWishlistStore } from '/src/store/store';
 
 // UTILS
 import {WishlistToggleContext} from '/src/utils/myContext';
+
+// API
+import checkAuthAndGetProfile from '/src/api/users/checkAuthAndGetProfile';
 
 // SCSS
 import '/src/styles/components/header/navbar/NavBottom.scss';
@@ -20,8 +24,9 @@ import userIcon from '/assets/img/icons/user.svg';
 import userIconDarkMode from '/assets/img/icons/user_darkMode.svg';
 
 function NavBottom ({darkMode, lan}) {
-  const user = useDataStore(state => state.user);
-  const userData = useDataStore(state => state.userData);
+
+  const { data: user } = useQuery(['user'], checkAuthAndGetProfile);
+
   const {wishlist, setToggle} = useWishlistStore();
   const navigate = useNavigate();
 
@@ -31,7 +36,7 @@ function NavBottom ({darkMode, lan}) {
   const prevScrollYTimer = useRef(null);
 
   const isWishlistEmpty = wishlist.length === 0;
-  const getUserImgURL = () => `/assets/img/userpfp/${user?.uid}/main.webp`;
+  const getProfileImgURL = () => `${import.meta.env.VITE_BACKEND_URI}/uploads/images/profiles/${user?.id}.webp`;
 
   const handleClick = e => {
     const { action } = e.currentTarget.dataset;
@@ -85,7 +90,7 @@ function NavBottom ({darkMode, lan}) {
     <section className="navBottom" ref={navBottomEL}>
       <button className={`navBottom__favourite${isWishlistEmpty ? ' empty' : ''}`} aria-label="Toggle Wishlst" data-action="toggle_wishlist_to_true" onClick={handleClick} ref={favouriteBtnEL} />
       <Link className="navBottom__user" to={user ? "/account" : "/account/login"} aria-label="Navigate to Your Account" data-action="navigate_to_path" onClick={handleClick}>
-        <DisplayWebImg className="navBottom__user__img" src={getUserImgURL()} backup={darkMode ? userIconDarkMode : userIcon} refresh={userData} />
+        <DisplayWebImg className="navBottom__user__img" src={getProfileImgURL()} backup={darkMode ? userIconDarkMode : userIcon} refresh={user} />
       </Link> 
     </section>
   )

@@ -51,11 +51,15 @@ function Account ({ darkMode, lan }) {
   const en = lan === 'en';
 
   const queryClient = useQueryClient();
-
+  
+  const [ refreshUserImg, setRefreshUserImg ] = useState(0);
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: checkAuthAndGetProfile,
-    onSuccess: () => setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500)
+    onSuccess: () => {
+      setRefreshUserImg(Math.random());
+      setTimeout(() => window.scroll({top: 0, behavior: 'smooth'}), 500);
+    }
   });
 
   const signoutMutation = useMutation({
@@ -290,7 +294,7 @@ function Account ({ darkMode, lan }) {
           <button className="account__banner__editPersonalDetails-btn" data-action="edit_profile_btn_is_clicked" onClick={handleClick} />
           <div className="account__banner__pfp">
             <DisplayImg className="account__banner__pfp__default-img" src={darkMode ? personIcon : personDarkModeIcon} />
-            <DisplayWebImg className="account__banner__pfp__user-img" src={getProfileImgURL()} backup={false} refresh={user} />
+            <DisplayWebImg className="account__banner__pfp__user-img" src={getProfileImgURL()} backup={false} refresh={refreshUserImg} />
             {/* <DisplayImg className="account__banner__pfp__user-img" src={getProfileImgURL()} /> */}
           </div>
         </section>
@@ -303,7 +307,7 @@ function Account ({ darkMode, lan }) {
           <div className="account__profile-window__wrapper" data-action="personalDetails_window_wrapper_is_clicked" onClick={e => e.stopPropagation()}>
             <h2 className="account__profile-window__wrapper__title">{en ? 'Edit Personal Details' : 'تعديل المعلومات الشخصيه'}</h2>
             <div className="account__profile-window__wrapper__pfp-wrapper" htmlFor="userPfp">
-              <DisplayWebImg className="account__profile-window__wrapper__pfp-wrapper__current-img" src={getProfileImgURL()} backup={false} />
+              <DisplayWebImg className="account__profile-window__wrapper__pfp-wrapper__current-img" src={getProfileImgURL()} backup={false} refresh={refreshUserImg} />
               <DisplayImg className="account__profile-window__wrapper__pfp-wrapper__new-img" src={pfpSrc} />
               <input className="account__profile-window__wrapper__pfp-wrapper__inpt" type="file" id="userPfp" name="userPfp" onChange={handleChange} ref={pfpImgEL} />
             </div>

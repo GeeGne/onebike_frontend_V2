@@ -27,9 +27,13 @@ import { useDataStore } from '/src/store/store';
 
 function Products ({ subject, darkMode, lan }) {
 
+  const [refreshProductsImg, setRefreshProductImg] = useState(0);
   const { data } = useQuery({
     queryKey: ['products'],
-    queryFn: getAllProducts
+    queryFn: getAllProducts,
+    onSuccess: () => {
+      setRefreshProductImg(Math.random());
+    }
   });
   const products = data || [];
 
@@ -73,7 +77,7 @@ function Products ({ subject, darkMode, lan }) {
             {/* <EmptyList darkMode={darkMode} lan={lan} productCategoryEN={cleanseString(productCategoryEN)} productCategory={productCategory}/>  */}
             <EmptyList darkMode={darkMode} lan={lan} subject={subject} /> 
             <NeedHelp darkMode={darkMode} lan={lan} /></>
-          : <AdvertList darkMode={darkMode} lan={lan} matchedProducts={matchedProducts} products={products} />
+          : <AdvertList darkMode={darkMode} lan={lan} matchedProducts={matchedProducts} products={products} refreshProductsImg={refreshProductsImg} />
         }
       </div>
     </>

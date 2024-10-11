@@ -28,8 +28,8 @@ import Redirector from '/src/utils/Redirector';
 
 function Admin ({darkMode, lan}) {
 
-  const { data: user } = useQuery({
-    queryKey: ['user', 'auth', 'profile', 'orders'],
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['user'],
     queryFn: checkAuthAndGetProfile
   });
 
@@ -59,17 +59,17 @@ function Admin ({darkMode, lan}) {
   const descriptionTab = () => {
     switch (tab) {
       case 'content-management':
-      return <ContentManagementTable darkMode={darkMode} lan={lan} />;
+      return <ContentManagementTable darkMode={darkMode} lan={lan} user={user} />;
       case 'general-settings':
-      return <GeneralSettingsTable darkMode={darkMode} lan={lan} />;
+      return <GeneralSettingsTable darkMode={darkMode} lan={lan} user={user} />;
       case 'orders-management':
-      return <OrdersManagementTable darkMode={darkMode} lan={lan} />;
+      return <OrdersManagementTable darkMode={darkMode} lan={lan} user={user} />;
     }
   }
 
   useEffect(() => {
-    redirector.admin(user);
-  }, [user]);
+    if (!isLoading) redirector.admin(user);
+  }, [ user ]);
 
   const handleClick = e => {
     const { action } = e.currentTarget.dataset;

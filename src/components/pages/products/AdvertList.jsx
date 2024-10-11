@@ -22,7 +22,7 @@ import calculatePrice from '/src/utils/calculatePrice.js'
 import calculateDiscountPercantage from '/src/utils/calculateDiscountPercantage.js'
 import fetchElementById from '/src/utils/fetchElementById.js'
 
-function AdvertList ({darkMode, lan, matchedProducts, products}) {
+function AdvertList ({ darkMode, lan, matchedProducts, products, refreshProductsImg }) {
 
   const {wishlist, addProductToWishlist, removeProductFromWishlist} = useWishlistStore();
   const {addProductToCart, removeProductFromCart} = useCartStore();
@@ -127,7 +127,7 @@ function AdvertList ({darkMode, lan, matchedProducts, products}) {
             ? <button className="advertList__advert-sctn__grid__product__favourite added-to-wishlist" data-type="remove_product_from_wishlist" data-product-id={product.id} onClick={handleClick} />
             : <button className="advertList__advert-sctn__grid__product__favourite" data-type="add_product_to_wishlist" data-product-id={product.id} onClick={handleClick} />
             }
-            <DisplayWebImg className="advertList__advert-sctn__grid__product__img" src={getProductImgURL(product)} alt={product[en ? 'title_en' : 'title_ar']} loading={i <= 5 ? "eager" : "lazy"} fetchpriority={i <= 5 ? "high" : ""} />
+            <DisplayWebImg className="advertList__advert-sctn__grid__product__img" src={getProductImgURL(product)} alt={product[en ? 'title_en' : 'title_ar']} loading={i <= 5 ? "eager" : "lazy"} fetchpriority={i <= 5 ? "high" : ""} refresh={refreshProductsImg} />
             {!product.discount || 
               <h3 className="advertList__advert-sctn__grid__product__discount">{lan === 'ar' ? 'خصم ' : ''}{calculateDiscountPercantage(product.price, product.discount)}{en ? ' off' : ''}</h3>
             }

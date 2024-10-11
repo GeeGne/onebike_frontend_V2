@@ -21,7 +21,7 @@ function DisplayWebImg ({className, src, alt, loading, fetchpriority, backup, re
 
   useEffect(() => {
     setImageUrl(`${src}?t=${new Date().getTime()}`);
-  }, [ src ])
+  }, [ refresh, src ])
 
   const handleLoad = () => setIsLoading(false);
   
@@ -34,7 +34,8 @@ function DisplayWebImg ({className, src, alt, loading, fetchpriority, backup, re
     
     <img 
       className={className} 
-      src={imageUrl} 
+      // src={imageUrl} 
+      src={`${src}?t=${new Date().getTime()}`} 
       loading={loading || ''} 
       alt={alt || ''} 
       fetchpriority={fetchpriority || 'auto'} 
