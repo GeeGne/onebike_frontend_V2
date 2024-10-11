@@ -5,8 +5,8 @@ import { Helmet } from 'react-helmet-async';
 import { useQuery } from 'react-query';
 
 // FIREBASE
-import {db} from '/src/firebase/fireStore';
-import {setDoc, updateDoc, getDoc, doc} from 'firebase/firestore';
+// import {db} from '/src/firebase/fireStore';
+// import {setDoc, updateDoc, getDoc, doc} from 'firebase/firestore';
 
 // COMPONENTS
 import OrderSummary from '/src/components/pages/checkout/OrderSummary';
@@ -239,30 +239,30 @@ function Checkout ({darkMode, lan}) {
       textEL.textContent = en? 'Hide' : 'اخفاء';
     }
 
-    const submitData = async () => {
-      orderUpdatedDateAndId.current = {...order, orderId: nanoid(12), orderDate: getCurrentDateFormat()};
-
-      const personalData = {
-        phone: order.costumer.phone,
-        addressDetails: order.shippingAddress.addressDetails,
-        secondAddress: order.shippingAddress.secondAddress,
-        notes: order.notes,
-      }
-
-      try {
-        const ordersCollectionRef = doc(db, 'users', user.uid, 'orders', orderUpdatedDateAndId.current.orderId);
-        await setDoc(ordersCollectionRef, orderUpdatedDateAndId.current);
-
-        const usertRef = doc(db, "users", user.uid);
-        await updateDoc(usertRef, personalData);
-
-        setRefreshUserData(Math.random());
-        return true;
-      } catch(err) {
-        console.log('Error: not able to write the order data');
-        return false;
-      }
-    }
+    // const submitData = async () => {
+      // orderUpdatedDateAndId.current = {...order, orderId: nanoid(12), orderDate: getCurrentDateFormat()};
+// 
+      // const personalData = {
+        // phone: order.costumer.phone,
+        // addressDetails: order.shippingAddress.addressDetails,
+        // secondAddress: order.shippingAddress.secondAddress,
+        // notes: order.notes,
+      // }
+// 
+      // try {
+        // const ordersCollectionRef = doc(db, 'users', user.uid, 'orders', orderUpdatedDateAndId.current.orderId);
+        // await setDoc(ordersCollectionRef, orderUpdatedDateAndId.current);
+// 
+        // const usertRef = doc(db, "users", user.uid);
+        // await updateDoc(usertRef, personalData);
+// 
+        // setRefreshUserData(Math.random());
+        // return true;
+      // } catch(err) {
+        // console.log('Error: not able to write the order data');
+        // return false;
+      // }
+    // }
 
     const sendOrderEmail = async () => {
       const productsText = generateOrderProductsHTML(orderUpdatedDateAndId.current, 'b');
@@ -296,28 +296,28 @@ function Checkout ({darkMode, lan}) {
       }
     };
 
-    const updateUserData = async (personalData) => {
-      setActivity(true);
-  
-      try {
-        const productRef = doc(db, "users", user.uid);
-        await updateDoc(productRef, personalData);
-  
-        if (imgFile.current) {
-          const storageRef = ref(storage, getnewUserImgURL());
-          await uploadBytes(storageRef, imgFile.current);
-        }
-    
-        setRefreshUserData(Math.random());
-        setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')
-      } catch(err) {
-        console.error('Error updating perosnal data: ', err);
-        setAlertText(en ? 'Error updating Persoanl Data' : 'خطأ في تحديث البيانات الشخصية')
-      } finally {
-        setNewAlert(Math.random());
-        setActivity(false);  
-      }
-    }
+    // const updateUserData = async (personalData) => {
+      // setActivity(true);
+  // 
+      // try {
+        // const productRef = doc(db, "users", user.uid);
+        // await updateDoc(productRef, personalData);
+  // 
+        // if (imgFile.current) {
+          // const storageRef = ref(storage, getnewUserImgURL());
+          // await uploadBytes(storageRef, imgFile.current);
+        // }
+    // 
+        // setRefreshUserData(Math.random());
+        // setAlertText(en ? 'Success! Your Personal Data is Updated' : 'تم تحديث بياناتك الشخصية بنجاح!')
+      // } catch(err) {
+        // console.error('Error updating perosnal data: ', err);
+        // setAlertText(en ? 'Error updating Persoanl Data' : 'خطأ في تحديث البيانات الشخصية')
+      // } finally {
+        // setNewAlert(Math.random());
+        // setActivity(false);  
+      // }
+    // }
   
 
     const toggleExpandDataATT = (el, expand) => el.dataset.expand = String(!expand);

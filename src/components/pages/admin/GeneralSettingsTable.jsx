@@ -19,12 +19,6 @@ import { useDataStore } from '/src/store/store';
 import editAltWindowReducer from '/src/reducers/editAltWindowReducer';
 import editSiteDetailsWindowReducer from '/src/reducers/editSiteDetailsWindowReducer';
 
-// FIREBASE
-import { db } from '/src/firebase/fireStore';
-import { getDoc, deleteDoc, setDoc, doc, collection, updateDoc, getDocs, writeBatch } from 'firebase/firestore';
-import { storage } from '/src/firebase/storage';
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
 // API
 import getBanners from '/src/api/banners/getBanners';
 import createBanner from '/src/api/banners/createBanner';

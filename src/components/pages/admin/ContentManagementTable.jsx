@@ -13,10 +13,6 @@ import DisplayImg from '/src/components/DisplayImg';
 import Alert from '/src/components/Alert';
 import ProgressActivity from '/src/components/ProgressActivity';
 
-// HOOKS
-import useFetchUserData from '/src/hooks/useFetchUserData';
-import useFetchProductsData from '/src/hooks/useFetchProductsData';
-
 // API
 import updateProduct from '/src/api/products/updateProduct';
 import deleteProduct from '/src/api/products/deleteProduct';
