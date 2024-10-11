@@ -4,11 +4,6 @@ import {Link, useNavigate} from 'react-router-dom';
 import {Helmet} from 'react-helmet-async';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 
-// FIREBASE
-import {auth} from "/src/firebase/authSignUp";
-import {signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail} from "firebase/auth";
-import handleAuthError from "/src/firebase/handleAuthError";
-
 // COMPONENTS
 import Banner from '/src/components/Banner';
 import ProgressActivity from '/src/components/ProgressActivity';
@@ -103,21 +98,6 @@ function SignIn ({darkMode, lan}) {
   }, [user]);
 
   const handleSubmit = async e => {
-
-    const sendPassReset = async () => {
-      const {email} = formData;
-      try {
-        await sendPasswordResetEmail(auth, email)
-        setAlertText('Reset password email has been sent!');
-        setNewAlert(Math.random());
-        return true;
-      } catch (err) {
-        console.error(err);
-        setAlertText(handleAuthError(err, en));
-        setNewAlert(Math.random());
-        return false;
-      }
-    }
 
     e.preventDefault();
     setProcessing(true);

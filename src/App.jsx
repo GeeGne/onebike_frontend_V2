@@ -2,13 +2,8 @@
 import React, { useState, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import useFetchAuth from '/src/hooks/useFetchAuth';
 // import useFetchUserData from '/src/hooks/useFetchUserData';
 import useClearInvalidProducts from '/src/hooks/useClearInvalidProducts';
-import useFetchProductsData from '/src/hooks/useFetchProductsData';
-import useFetchRolesData from '/src/hooks/useFetchRolesData';
-import useFetchHomePageBannersData from '/src/hooks/useFetchHomePageBannersData';
-import useFetchWebsiteDetailsData from '/src/hooks/useFetchWebsiteDetailsData';
 
 //  STYLES
 // import './styles/App.scss';
