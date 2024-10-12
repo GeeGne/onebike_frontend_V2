@@ -11,9 +11,9 @@ function DisplayWebImg ({className, src, alt, loading, fetchpriority, backup, re
   const hanldeBackup = () => {
     switch (backup) {
       case false:
-        return isLoading ? '' : emptyLayout1;
+        return emptyLayout1;
       case undefined:
-        return isLoading ? '': emptyLayout2;
+        return emptyLayout2;
       default:
         return backup;
     }
@@ -34,8 +34,7 @@ function DisplayWebImg ({className, src, alt, loading, fetchpriority, backup, re
     
     <img 
       className={className} 
-      // src={imageUrl} 
-      src={`${src}?t=${new Date().getTime()}`} 
+      src={imageUrl} 
       loading={loading || ''} 
       alt={alt || ''} 
       fetchpriority={fetchpriority || 'auto'} 

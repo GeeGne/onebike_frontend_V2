@@ -31,9 +31,17 @@ import userIcon from '/assets/img/icons/user.svg';
 import userIconDarkMode from '/assets/img/icons/user_darkMode.svg';
 
 function Navbar ({darkMode, lan}) {
-  
-  const { data: user } = useQuery(['user'], checkAuthAndGetProfile);
-    const navigate = useNavigate();
+
+  const [ refreshUserImg, setRefreshUserImg ] = useState(0);
+  const { data: user } = useQuery({
+    queryKey: ['user'], 
+    queryFn: checkAuthAndGetProfile,
+    onSuccess: () => {
+      setRefreshUserImg(Math.random());
+    }
+  });
+
+  const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
   const [search, setSearch] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -184,7 +192,7 @@ function Navbar ({darkMode, lan}) {
         </div>
         <button className="dropMenu__nav__search" aria-label="Search on a product" data-action="toggle_search" onClick={handleClick} /* onMouseEnter={() => handleHover(true)} onMouseLeave={() => handleHover(false)} */ ref={searchBtnEL}/>
         <Link className="dropMenu__nav__user" to={user ? "/account" : "/account/login"} role="button" tabIndex="0" aria-label="head to your account">
-          <DisplayWebImg className="dropMenu__nav__user__img" src={getProfileImgURL()} backup={darkMode ? userIconDarkMode : userIcon} refresh={user} />
+          <DisplayWebImg className="dropMenu__nav__user__img" src={getProfileImgURL()} backup={darkMode ? userIconDarkMode : userIcon} refresh={refreshUserImg} />
         </Link>
         <button className={`dropMenu__nav__favourite${isWishlistEmpty ? ' empty' : ''}`} aria-label="Open favorite tab" data-action="toggle_wishlist_to_true" onClick={handleClick} ref={favouriteBtnEL}/>
         <button className={`dropMenu__nav__shoppingCart${isCartEmpty ? ' empty' : ''}`} aria-label="Open shoppingcart tab" data-action="toggle_cart_to_true" onClick={handleClick} ref={cartBtnEL}/>
