@@ -6,7 +6,7 @@ async function signup (formData) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ name: fname + lname, email, phone, password })
+      body: JSON.stringify({ name: fname + ' ' + lname, email, phone, password })
     });
 
     if (!response.ok) {
