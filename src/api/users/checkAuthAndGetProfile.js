@@ -1,8 +1,6 @@
 async function checkAuthAndGetProfile () {
   try {
     const uri = `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/me`
-    console.log('uri: ', uri);
-    console.log('All environment variables: ', import.meta.env);
     const response = await fetch(uri, {
       method: 'GET',
       credentials: 'include'
@@ -16,7 +14,7 @@ async function checkAuthAndGetProfile () {
     return user;
   } catch (err) {
     console.info('note: ', err.message);
-    throw err;
+    return false;
   }
 }
 

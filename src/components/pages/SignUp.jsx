@@ -50,27 +50,26 @@ function SignUp ({darkMode, lan}) {
   const {headToCheckouts, setHeadToCheckouts} = useOrderStore();
 
   const { data: user } = useQuery({
-    queryKey: ['user', 'auth', 'profile', 'orders'],
+    queryKey: ['user'],
     queryFn: checkAuthAndGetProfile,
     onSuccess: () => {
       setProcessing(false);
       setTimeout(() => window.scroll({ top: 0, behavior: 'smooth' }), 500);
     }
-  })
+  });
 
   const signupMutation = useMutation({
     mutationFn: signup,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] })
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     },
     onError: (err) => {
       setProcessing(false);
       setAlertText(err.message);
       setNewAlert(Math.random());
-      console.error('An Error while submiting: ', err);
       formEL.current.style.border = 'solid var(--red-color) 2px';
     }
-  })
+  });
 
   const redirector = new Redirector(navigate, headToCheckouts, setHeadToCheckouts);
   console.log('user', user);
